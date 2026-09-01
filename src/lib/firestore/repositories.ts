@@ -9,14 +9,15 @@ import {
 } from '@/types';
 
 /**
- * Strict validation of UID to prevent empty or malformed path injections.
+ * Strict validation of authenticated UID to prevent empty or malformed path injections.
+ * Enforces that only verified server-derived UIDs can access Firestore repositories.
  */
-function assertValidUid(uid: string): void {
-  if (!uid || typeof uid !== 'string' || uid.trim().length === 0) {
-    throw new Error('Security Violation: Invalid or empty UID passed to Firestore repository.');
+function assertValidAuthenticatedUid(authenticatedUid: string): void {
+  if (!authenticatedUid || typeof authenticatedUid !== 'string' || authenticatedUid.trim().length === 0) {
+    throw new Error('Security Violation: Invalid or empty authenticatedUid passed to Firestore repository.');
   }
-  if (uid.includes('/') || uid.includes('..')) {
-    throw new Error('Security Violation: Malformed UID detected.');
+  if (authenticatedUid.includes('/') || authenticatedUid.includes('..') || authenticatedUid.includes('\\')) {
+    throw new Error('Security Violation: Malformed authenticatedUid detected.');
   }
 }
 
@@ -24,30 +25,30 @@ function assertValidDocId(id: string): void {
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
     throw new Error('Invalid document ID provided.');
   }
-  if (id.includes('/') || id.includes('..')) {
+  if (id.includes('/') || id.includes('..') || id.includes('\\')) {
     throw new Error('Security Violation: Malformed document ID detected.');
   }
 }
 
 // =============================================================================
-// 1. Journal Repository (UID-Scoped: users/{uid}/journals/{journalId})
+// 1. Journal Repository (UID-Scoped: users/{authenticatedUid}/journals/{journalId})
 // =============================================================================
 export const JournalRepository = {
-  getCollection(uid: string) {
-    assertValidUid(uid);
+  getCollection(authenticatedUid: string) {
+    assertValidAuthenticatedUid(authenticatedUid);
     const db = getAdminFirestore();
-    return db.collection('users').doc(uid).collection('journals');
+    return db.collection('users').doc(authenticatedUid).collection('journals');
   },
 
-  async create(uid: string, data: Omit<JournalEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<JournalEntry> {
-    const col = this.getCollection(uid);
+  async create(authenticatedUid: string, data: Omit<JournalEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<JournalEntry> {
+    const col = this.getCollection(authenticatedUid);
     const now = new Date().toISOString();
     const docRef = col.doc();
 
     const entry: JournalEntry = {
       ...data,
       id: docRef.id,
-      uid,
+      uid: authenticatedUid,
       createdAt: now,
       updatedAt: now,
     };
@@ -56,23 +57,23 @@ export const JournalRepository = {
     return entry;
   },
 
-  async getById(uid: string, journalId: string): Promise<JournalEntry | null> {
+  async getById(authenticatedUid: string, journalId: string): Promise<JournalEntry | null> {
     assertValidDocId(journalId);
-    const docRef = this.getCollection(uid).doc(journalId);
+    const docRef = this.getCollection(authenticatedUid).doc(journalId);
     const snap = await docRef.get();
     if (!snap.exists) return null;
     return snap.data() as JournalEntry;
   },
 
-  async list(uid: string, limitCount: number = 50): Promise<JournalEntry[]> {
-    const col = this.getCollection(uid);
+  async list(authenticatedUid: string, limitCount: number = 50): Promise<JournalEntry[]> {
+    const col = this.getCollection(authenticatedUid);
     const snap = await col.orderBy('createdAt', 'desc').limit(limitCount).get();
     return snap.docs.map((doc) => doc.data() as JournalEntry);
   },
 
-  async update(uid: string, journalId: string, updates: Partial<Omit<JournalEntry, 'id' | 'uid' | 'createdAt'>>): Promise<JournalEntry> {
+  async update(authenticatedUid: string, journalId: string, updates: Partial<Omit<JournalEntry, 'id' | 'uid' | 'createdAt'>>): Promise<JournalEntry> {
     assertValidDocId(journalId);
-    const docRef = this.getCollection(uid).doc(journalId);
+    const docRef = this.getCollection(authenticatedUid).doc(journalId);
     const now = new Date().toISOString();
     const patch = { ...updates, updatedAt: now };
 
@@ -81,32 +82,32 @@ export const JournalRepository = {
     return snap.data() as JournalEntry;
   },
 
-  async delete(uid: string, journalId: string): Promise<void> {
+  async delete(authenticatedUid: string, journalId: string): Promise<void> {
     assertValidDocId(journalId);
-    const docRef = this.getCollection(uid).doc(journalId);
+    const docRef = this.getCollection(authenticatedUid).doc(journalId);
     await docRef.delete();
   },
 };
 
 // =============================================================================
-// 2. Memory Repository (UID-Scoped: users/{uid}/memories/{memoryId})
+// 2. Memory Repository (UID-Scoped: users/{authenticatedUid}/memories/{memoryId})
 // =============================================================================
 export const MemoryRepository = {
-  getCollection(uid: string) {
-    assertValidUid(uid);
+  getCollection(authenticatedUid: string) {
+    assertValidAuthenticatedUid(authenticatedUid);
     const db = getAdminFirestore();
-    return db.collection('users').doc(uid).collection('memories');
+    return db.collection('users').doc(authenticatedUid).collection('memories');
   },
 
-  async create(uid: string, data: Omit<MemoryItem, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<MemoryItem> {
-    const col = this.getCollection(uid);
+  async create(authenticatedUid: string, data: Omit<MemoryItem, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<MemoryItem> {
+    const col = this.getCollection(authenticatedUid);
     const now = new Date().toISOString();
     const docRef = col.doc();
 
     const item: MemoryItem = {
       ...data,
       id: docRef.id,
-      uid,
+      uid: authenticatedUid,
       createdAt: now,
       updatedAt: now,
     };
@@ -115,8 +116,8 @@ export const MemoryRepository = {
     return item;
   },
 
-  async list(uid: string, category?: MemoryCategory): Promise<MemoryItem[]> {
-    let query: FirebaseFirestore.Query = this.getCollection(uid);
+  async list(authenticatedUid: string, category?: MemoryCategory): Promise<MemoryItem[]> {
+    let query: FirebaseFirestore.Query = this.getCollection(authenticatedUid);
     if (category) {
       query = query.where('category', '==', category);
     }
@@ -124,47 +125,47 @@ export const MemoryRepository = {
     return snap.docs.map((doc) => doc.data() as MemoryItem);
   },
 
-  async getById(uid: string, memoryId: string): Promise<MemoryItem | null> {
+  async getById(authenticatedUid: string, memoryId: string): Promise<MemoryItem | null> {
     assertValidDocId(memoryId);
-    const snap = await this.getCollection(uid).doc(memoryId).get();
+    const snap = await this.getCollection(authenticatedUid).doc(memoryId).get();
     if (!snap.exists) return null;
     return snap.data() as MemoryItem;
   },
 
-  async update(uid: string, memoryId: string, updates: Partial<Omit<MemoryItem, 'id' | 'uid' | 'createdAt'>>): Promise<MemoryItem> {
+  async update(authenticatedUid: string, memoryId: string, updates: Partial<Omit<MemoryItem, 'id' | 'uid' | 'createdAt'>>): Promise<MemoryItem> {
     assertValidDocId(memoryId);
-    const docRef = this.getCollection(uid).doc(memoryId);
+    const docRef = this.getCollection(authenticatedUid).doc(memoryId);
     const now = new Date().toISOString();
     await docRef.update({ ...updates, updatedAt: now });
     const snap = await docRef.get();
     return snap.data() as MemoryItem;
   },
 
-  async delete(uid: string, memoryId: string): Promise<void> {
+  async delete(authenticatedUid: string, memoryId: string): Promise<void> {
     assertValidDocId(memoryId);
-    await this.getCollection(uid).doc(memoryId).delete();
+    await this.getCollection(authenticatedUid).doc(memoryId).delete();
   },
 };
 
 // =============================================================================
-// 3. Goal Repository (UID-Scoped: users/{uid}/goals/{goalId})
+// 3. Goal Repository (UID-Scoped: users/{authenticatedUid}/goals/{goalId})
 // =============================================================================
 export const GoalRepository = {
-  getCollection(uid: string) {
-    assertValidUid(uid);
+  getCollection(authenticatedUid: string) {
+    assertValidAuthenticatedUid(authenticatedUid);
     const db = getAdminFirestore();
-    return db.collection('users').doc(uid).collection('goals');
+    return db.collection('users').doc(authenticatedUid).collection('goals');
   },
 
-  async create(uid: string, data: Omit<GoalItem, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<GoalItem> {
-    const col = this.getCollection(uid);
+  async create(authenticatedUid: string, data: Omit<GoalItem, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<GoalItem> {
+    const col = this.getCollection(authenticatedUid);
     const now = new Date().toISOString();
     const docRef = col.doc();
 
     const goal: GoalItem = {
       ...data,
       id: docRef.id,
-      uid,
+      uid: authenticatedUid,
       createdAt: now,
       updatedAt: now,
     };
@@ -173,8 +174,8 @@ export const GoalRepository = {
     return goal;
   },
 
-  async list(uid: string, status?: GoalStatus): Promise<GoalItem[]> {
-    let query: FirebaseFirestore.Query = this.getCollection(uid);
+  async list(authenticatedUid: string, status?: GoalStatus): Promise<GoalItem[]> {
+    let query: FirebaseFirestore.Query = this.getCollection(authenticatedUid);
     if (status) {
       query = query.where('status', '==', status);
     }
@@ -182,47 +183,47 @@ export const GoalRepository = {
     return snap.docs.map((doc) => doc.data() as GoalItem);
   },
 
-  async getById(uid: string, goalId: string): Promise<GoalItem | null> {
+  async getById(authenticatedUid: string, goalId: string): Promise<GoalItem | null> {
     assertValidDocId(goalId);
-    const snap = await this.getCollection(uid).doc(goalId).get();
+    const snap = await this.getCollection(authenticatedUid).doc(goalId).get();
     if (!snap.exists) return null;
     return snap.data() as GoalItem;
   },
 
-  async update(uid: string, goalId: string, updates: Partial<Omit<GoalItem, 'id' | 'uid' | 'createdAt'>>): Promise<GoalItem> {
+  async update(authenticatedUid: string, goalId: string, updates: Partial<Omit<GoalItem, 'id' | 'uid' | 'createdAt'>>): Promise<GoalItem> {
     assertValidDocId(goalId);
-    const docRef = this.getCollection(uid).doc(goalId);
+    const docRef = this.getCollection(authenticatedUid).doc(goalId);
     const now = new Date().toISOString();
     await docRef.update({ ...updates, updatedAt: now });
     const snap = await docRef.get();
     return snap.data() as GoalItem;
   },
 
-  async delete(uid: string, goalId: string): Promise<void> {
+  async delete(authenticatedUid: string, goalId: string): Promise<void> {
     assertValidDocId(goalId);
-    await this.getCollection(uid).doc(goalId).delete();
+    await this.getCollection(authenticatedUid).doc(goalId).delete();
   },
 };
 
 // =============================================================================
-// 4. Rewind Repository (UID-Scoped: users/{uid}/rewinds/{rewindId})
+// 4. Rewind Repository (UID-Scoped: users/{authenticatedUid}/rewinds/{rewindId})
 // =============================================================================
 export const RewindRepository = {
-  getCollection(uid: string) {
-    assertValidUid(uid);
+  getCollection(authenticatedUid: string) {
+    assertValidAuthenticatedUid(authenticatedUid);
     const db = getAdminFirestore();
-    return db.collection('users').doc(uid).collection('rewinds');
+    return db.collection('users').doc(authenticatedUid).collection('rewinds');
   },
 
-  async save(uid: string, data: Omit<RewindReport, 'id' | 'uid' | 'createdAt'>): Promise<RewindReport> {
-    const col = this.getCollection(uid);
+  async save(authenticatedUid: string, data: Omit<RewindReport, 'id' | 'uid' | 'createdAt'>): Promise<RewindReport> {
+    const col = this.getCollection(authenticatedUid);
     const now = new Date().toISOString();
     const docRef = col.doc();
 
     const report: RewindReport = {
       ...data,
       id: docRef.id,
-      uid,
+      uid: authenticatedUid,
       createdAt: now,
     };
 
@@ -230,14 +231,14 @@ export const RewindRepository = {
     return report;
   },
 
-  async list(uid: string): Promise<RewindReport[]> {
-    const snap = await this.getCollection(uid).orderBy('createdAt', 'desc').limit(20).get();
+  async list(authenticatedUid: string): Promise<RewindReport[]> {
+    const snap = await this.getCollection(authenticatedUid).orderBy('createdAt', 'desc').limit(20).get();
     return snap.docs.map((doc) => doc.data() as RewindReport);
   },
 
-  async getById(uid: string, rewindId: string): Promise<RewindReport | null> {
+  async getById(authenticatedUid: string, rewindId: string): Promise<RewindReport | null> {
     assertValidDocId(rewindId);
-    const snap = await this.getCollection(uid).doc(rewindId).get();
+    const snap = await this.getCollection(authenticatedUid).doc(rewindId).get();
     if (!snap.exists) return null;
     return snap.data() as RewindReport;
   },

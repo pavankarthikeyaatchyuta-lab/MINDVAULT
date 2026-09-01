@@ -36,7 +36,7 @@ describe('Security Test Suite: Secret Leak Prevention & Repository Cleanliness',
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           scanDir(fullPath);
-        } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx') || entry.name.endsWith('.js'))) {
+        } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx') || entry.name.endsWith('.js') || entry.name.endsWith('.mjs'))) {
           const fileContent = fs.readFileSync(fullPath, 'utf-8');
           // Check for private key leaks
           expect(fileContent).not.toContain('-----BEGIN PRIVATE KEY-----');
@@ -48,5 +48,25 @@ describe('Security Test Suite: Secret Leak Prevention & Repository Cleanliness',
     }
 
     scanDir(srcDir);
+  });
+
+  it('4. MUST verify Secret Manager and server-only modules are never imported in client components', () => {
+    const clientDirs = [
+      path.join(rootDir, 'src/components'),
+      path.join(rootDir, 'src/context'),
+    ];
+
+    for (const dir of clientDirs) {
+      if (!fs.existsSync(dir)) continue;
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        if (file.endsWith('.tsx') || file.endsWith('.ts')) {
+          const content = fs.readFileSync(path.join(dir, file), 'utf-8');
+          expect(content).not.toContain('@google-cloud/secret-manager');
+          expect(content).not.toContain('firebase-admin');
+          expect(content).not.toContain('@google/genai');
+        }
+      }
+    }
   });
 });

@@ -8,7 +8,6 @@ import * as adminFirestore from '@/lib/firebase/admin';
 
 // In-memory mock for Firestore to verify collection paths & document isolation
 describe('Security Test Suite: Firestore UID Isolation & Access Boundary', () => {
-  let mockDoc: jest.Mock;
   let mockCollection: jest.Mock;
   let mockDb: any;
 
@@ -31,10 +30,6 @@ describe('Security Test Suite: Firestore UID Isolation & Access Boundary', () =>
       get: jest.fn().mockResolvedValue({ docs: [{ data: () => ({ id: 'doc-1', uid: 'user_A' }) }] }),
     };
 
-    const mockUserDocRef = {
-      collection: jest.fn().mockReturnValue(mockSubCollection),
-    };
-
     mockCollection = jest.fn().mockReturnValue({
       doc: jest.fn((uid) => {
         return {
@@ -55,7 +50,7 @@ describe('Security Test Suite: Firestore UID Isolation & Access Boundary', () =>
     jest.spyOn(adminFirestore, 'getAdminFirestore').mockReturnValue(mockDb as any);
   });
 
-  it('1. MUST strictly scope Journal queries to the authenticated user path (users/{uid}/journals)', async () => {
+  it('1. MUST strictly scope Journal queries to the authenticated user path (users/{authenticatedUid}/journals)', async () => {
     const userA_Col = JournalRepository.getCollection('user_A');
     expect((userA_Col as any)._path).toBe('users/user_A/journals');
 
@@ -64,16 +59,16 @@ describe('Security Test Suite: Firestore UID Isolation & Access Boundary', () =>
     expect((userA_Col as any)._path).not.toBe((userB_Col as any)._path);
   });
 
-  it('2. MUST reject empty or non-string UID with a security violation exception', () => {
-    expect(() => JournalRepository.getCollection('')).toThrow('Security Violation: Invalid or empty UID');
-    expect(() => JournalRepository.getCollection(null as any)).toThrow('Security Violation: Invalid or empty UID');
-    expect(() => MemoryRepository.getCollection(undefined as any)).toThrow('Security Violation: Invalid or empty UID');
+  it('2. MUST reject empty or non-string authenticatedUid with a security violation exception', () => {
+    expect(() => JournalRepository.getCollection('')).toThrow('Security Violation: Invalid or empty authenticatedUid');
+    expect(() => JournalRepository.getCollection(null as any)).toThrow('Security Violation: Invalid or empty authenticatedUid');
+    expect(() => MemoryRepository.getCollection(undefined as any)).toThrow('Security Violation: Invalid or empty authenticatedUid');
   });
 
-  it('3. MUST reject path traversal attempts in UID', () => {
-    expect(() => JournalRepository.getCollection('../admin')).toThrow('Security Violation: Malformed UID detected');
-    expect(() => MemoryRepository.getCollection('user_A/journals/other')).toThrow('Security Violation: Malformed UID detected');
-    expect(() => GoalRepository.getCollection('../../etc/passwd')).toThrow('Security Violation: Malformed UID detected');
+  it('3. MUST reject path traversal attempts in authenticatedUid', () => {
+    expect(() => JournalRepository.getCollection('../admin')).toThrow('Security Violation: Malformed authenticatedUid detected');
+    expect(() => MemoryRepository.getCollection('user_A/journals/other')).toThrow('Security Violation: Malformed authenticatedUid detected');
+    expect(() => GoalRepository.getCollection('../../etc/passwd')).toThrow('Security Violation: Malformed authenticatedUid detected');
   });
 
   it('4. MUST reject path traversal attempts in Document IDs', async () => {
@@ -81,7 +76,7 @@ describe('Security Test Suite: Firestore UID Isolation & Access Boundary', () =>
     await expect(MemoryRepository.delete('user_A', 'doc/traversal')).rejects.toThrow('Security Violation: Malformed document ID');
   });
 
-  it('5. MUST scope Memory, Goal, and Rewind repositories strictly by authenticated UID', () => {
+  it('5. MUST scope Memory, Goal, and Rewind repositories strictly by authenticated authenticatedUid', () => {
     const memoryCol = MemoryRepository.getCollection('user_X');
     expect((memoryCol as any)._path).toBe('users/user_X/memories');
 

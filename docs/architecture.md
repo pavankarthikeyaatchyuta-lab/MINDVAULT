@@ -1,67 +1,106 @@
 # MindVault — Architecture Documentation
 
-## 1. System Overview
-
-MindVault is a production-grade personal journal powered by Google Gemini and built on Google Cloud Platform. It transforms ephemeral journal entries into searchable personal memories, goals, growth timelines, and visual retrospectives while enforcing strict privacy and user data isolation.
+## 1. System Architecture Diagram
 
 ```
-USER
+USER BROWSER / CLIENT
+ │
+ ├── 1. Firebase Authentication (Google Sign-in / Email & Password)
+ │    └── Obtains cryptographically signed Firebase ID Token
+ │
+ ├── 2. Client-Side Navigation & UI (React 19, Tailwind CSS, Lucide)
  │
  ▼
-Firebase Authentication (Google Sign-in / Email & Password)
+HTTPS API Request (with Authorization: Bearer <idToken>)
  │
- │ Authenticated Firebase ID Token
  ▼
-Next.js Application (Cloud Run Container)
+GOOGLE CLOUD RUN BACKEND CONTAINER
  │
- ├── Client-Side (React 19, Tailwind CSS, Lucide)
- │    ├── AuthContext (Session state & token refresh)
- │    ├── Dashboard & Journal Composer
- │    └── Privacy & Retrospective UI
+ ├── 3. Server-Side Authentication Verification (auth-middleware.ts)
+ │    ├── Invokes Firebase Admin SDK verifyIdToken(idToken, checkRevoked=true)
+ │    ├── Validates Google signatures, expiration, audience & project ID
+ │    └── Extracts authoritative authenticated UID: context.uid = decodedToken.uid
  │
- └── Server-Side API Layer (/api/*)
-      ├── auth-middleware (verifyIdToken -> extract verified UID)
-      ├── Gemini Service (@google/genai via Secret Manager)
-      ├── Firestore Repository Layer (Strict users/{uid}/* scoping)
-      └── Secret Manager Client (SecretManagerServiceClient / Caching)
+ ├── 4. Server-Side Authorization Enforcement
+ │    └── Rejects any client-supplied spoofed UID in request body or parameters
  │
- ├─────────────────────────┬─────────────────────────┐
- ▼                         ▼                         ▼
-Cloud Firestore        Gemini API             Secret Manager
-(users/{uid}/*)    (gemini-2.5-flash)     (MINDVAULT_GEMINI_API_KEY)
+ ├── 5. UID-Scoped Repository Layer (repositories.ts)
+ │    └── Enforces path scoping: users/{authenticatedUid}/*
+ │
+ ├── 6. Google Cloud Secret Manager (secret-manager.ts)
+ │    └── Fetches GEMINI_API_KEY with 10-minute in-memory caching
+ │
+ └── 7. Gemini Service (gemini/client.ts)
+      └── Interacts with Gemini 2.5 Flash via @google/genai SDK
+ │
+ ├─────────────────────────────────────────┬─────────────────────────────────────────┐
+ ▼                                         ▼                                         ▼
+Cloud Firestore                        Gemini API                            Secret Manager
+(users/{authenticatedUid}/*)      (gemini-2.5-flash)                   (MINDVAULT_GEMINI_API_KEY)
 ```
 
 ---
 
-## 2. Core Architectural Principles
+## 2. CRITICAL SECURITY INVARIANT: Dual Security Boundaries
 
-### 2.1 Dual Security Boundary
-- **Client-Side Boundary**: Direct Firestore access (if ever enabled) is strictly constrained by `firestore.rules`.
-- **Server-Side Boundary**: All backend API routes in Cloud Run use Firebase Admin SDK to verify the Firebase ID token and derive the caller's verified `uid`. Request-body or query-string UIDs are never trusted.
+> [!CAUTION]
+> **Admin SDK Bypass Warning**: All operations executed by the Firebase Admin SDK on Cloud Run bypass Firestore Security Rules.
+> Therefore, Firestore Security Rules protect direct client access, but **Server-Side Token Verification & UID Extraction are strictly mandatory** to prevent cross-user data leakage on all backend API routes.
 
-### 2.2 Strict UID-Scoped Data Partitioning
-Every user's personal journal data resides under their unique root:
+```mermaid
+flowchart TD
+    subgraph ClientDirectAccess["Direct Client Access Boundary"]
+        ClientApp["Client App"] -->|Protected by| Rules["firestore.rules\n(request.auth.uid == userId)"]
+        Rules -->|Enforces| FSClient["Firestore users/{userId}/*"]
+    end
+
+    subgraph ServerAdminAccess["Cloud Run Server Boundary"]
+        APIReq["Client HTTP Request\n(Bearer token)"] -->|Step 1: Verify| AdminAuth["Firebase Admin verifyIdToken()"]
+        AdminAuth -->|Step 2: Extract| AuthUID["Verified authenticatedUid"]
+        AuthUID -->|Step 3: Mandate| Repo["UID-Scoped Repositories\nusers/{authenticatedUid}/*"]
+        Repo -->|Step 4: Execute| AdminSDK["Admin SDK Firestore\n(Bypasses Rules - Relies on Server Authorization)"]
+    end
 ```
-users/{uid}/journals/{journalId}
-users/{uid}/memories/{memoryId}
-users/{uid}/goals/{goalId}
-users/{uid}/insights/{insightId}
-users/{uid}/rewinds/{rewindId}
-```
-
-### 2.3 Production Secret Management
-- Zero secrets in frontend JavaScript bundles.
-- Zero secrets committed to source control (`.gitignore` + `.env.example`).
-- Server credentials and API keys dynamically resolved via Google Cloud Secret Manager (`SecretManagerServiceClient`) with in-memory caching and fallback to local environment for local development.
 
 ---
 
-## 3. Google Cloud Technologies Used
+## 3. Technology Integration Details
 
-| Technology | Purpose | Implementation Detail |
+| Technology | Role | Implementation Detail |
 | :--- | :--- | :--- |
-| **Firebase Authentication** | Identity & Session Management | Google Sign-In & Email/Password with ID token verification |
-| **Cloud Firestore** | Isolated Personal Data Store | Subcollections scoped under `users/{uid}/*` |
-| **Gemini API** | Generative Reflection & Memory | `@google/genai` with `gemini-2.5-flash` |
-| **Secret Manager** | Sensitive Server Credential Storage | `@google-cloud/secret-manager` client with 10-min cache |
-| **Google Cloud Run** | Serverless Container Runtime | Multi-stage Docker container running Next.js standalone |
+| **Firebase Authentication** | Identity & Session Provider | Google Sign-in & Email/Password with cryptographic token exchange |
+| **Cloud Firestore** | Isolated Personal Data Store | Subcollections scoped under `users/{authenticatedUid}/*` |
+| **Gemini API** | Generative AI Journal Companion | `@google/genai` with `gemini-2.5-flash` |
+| **Google Cloud Secret Manager** | Sensitive Credential Storage | `@google-cloud/secret-manager` client with TTL cache & local dev fallback |
+| **Google Cloud Run** | Serverless Container Runtime | Multi-stage Docker container running Next.js standalone with non-root user |
+
+---
+
+## 4. Current Implementation Status vs Roadmap
+
+### Implemented in Stage 1 (P0 Foundation)
+- [x] Next.js 15 App Router + TypeScript + Tailwind CSS
+- [x] Firebase Client Authentication (Google OAuth + Email/Password)
+- [x] Firebase Admin ID Token Verification Middleware (`verifyAuthHeader`)
+- [x] UID-Scoped Firestore Repositories (`JournalRepository`, `MemoryRepository`, `GoalRepository`, `RewindRepository`)
+- [x] Strict Firestore Security Rules (`firestore.rules`)
+- [x] Google Cloud Secret Manager integration with caching
+- [x] Production Dockerfile for Cloud Run with non-root execution
+- [x] Production security headers (CSP, X-Frame-Options, X-Content-Type-Options)
+- [x] Automated Security Test Suite (18 tests passing)
+- [x] Container Readiness & Health Endpoint (`/api/health`)
+
+### Planned for Stage 2 (P1 Core Product)
+- [ ] Multi-turn Gemini conversational journal session (`/api/journal/chat`)
+- [ ] Automatic journal summarizer (`/api/journal/summarize`)
+- [ ] AI structured memory extraction across 9 categories (`/api/journal/extract-memory`)
+
+### Planned for Stage 3 (P2 Differentiation)
+- [ ] "Ask My Journal" semantic retrieval with source grounding (`/api/journal/search`)
+- [ ] "Journal Rewind" retrospective engine for 7d, 30d, 90d, all time (`/api/rewind`)
+- [ ] Personal Growth Timeline visualization
+
+### Planned for Stage 4 (P3 Polish & Features)
+- [ ] Goal memory tracker with explicit state confirmation
+- [ ] Optional Google Places API (New) & Maps JS personal memory map
+- [ ] Privacy Center UI with UID data audit controls

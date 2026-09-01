@@ -17,97 +17,74 @@ Ordinary journals are write-only graveyards of thoughts: you write entries, and 
 
 ---
 
-## 2. Architecture & Security Model
+## 2. Architecture & Dual-Boundary Security Model
 
 ```
-USER
+USER BROWSER / CLIENT
+ │
+ ├── 1. Firebase Authentication (Google Sign-in / Email & Password)
+ │    └── Obtains cryptographically signed Firebase ID Token
+ │
+ ├── 2. Client-Side Navigation & UI (React 19, Tailwind CSS, Lucide)
  │
  ▼
-Firebase Authentication (Google Sign-In / Email & Password)
+HTTPS API Request (with Authorization: Bearer <idToken>)
  │
- │ Authenticated Firebase ID Token
  ▼
-Next.js Application (Cloud Run Container)
+GOOGLE CLOUD RUN BACKEND CONTAINER
  │
- ├── Client-Side (React 19, Tailwind CSS, Lucide)
- │    ├── AuthContext (Session state & token refresh)
- │    ├── Dashboard & Journal Composer
- │    └── Privacy & Retrospective UI
+ ├── 3. Server-Side Authentication Verification (auth-middleware.ts)
+ │    ├── Invokes Firebase Admin SDK verifyIdToken(idToken, checkRevoked=true)
+ │    └── Extracts authoritative authenticated UID: context.uid = decodedToken.uid
  │
- └── Server-Side API Layer (/api/*)
-      ├── auth-middleware (verifyIdToken -> extract verified UID)
-      ├── Gemini Service (@google/genai via Secret Manager)
-      ├── Firestore Repository Layer (Strict users/{uid}/* scoping)
-      └── Secret Manager Client (SecretManagerServiceClient / Caching)
+ ├── 4. Server-Side Authorization Enforcement
+ │    └── Rejects any client-supplied spoofed UID in request body or parameters
  │
- ├─────────────────────────┬─────────────────────────┐
- ▼                         ▼                         ▼
-Cloud Firestore        Gemini API             Secret Manager
-(users/{uid}/*)    (gemini-2.5-flash)     (MINDVAULT_GEMINI_API_KEY)
+ ├── 5. UID-Scoped Repository Layer (repositories.ts)
+ │    └── Enforces path scoping: users/{authenticatedUid}/*
+ │
+ ├── 6. Google Cloud Secret Manager (secret-manager.ts)
+ │    └── Fetches GEMINI_API_KEY with 10-minute in-memory caching
+ │
+ └── 7. Gemini Service (gemini/client.ts)
+      └── Interacts with Gemini 2.5 Flash via @google/genai SDK
+ │
+ ├─────────────────────────────────────────┬─────────────────────────────────────────┐
+ ▼                                         ▼                                         ▼
+Cloud Firestore                        Gemini API                            Secret Manager
+(users/{authenticatedUid}/*)      (gemini-2.5-flash)                   (MINDVAULT_GEMINI_API_KEY)
 ```
 
-### Dual-Layer Security Boundary
-1. **Server-Side Token Verification**: Every Cloud Run endpoint verifies the Firebase ID token using the Firebase Admin SDK. The effective UID is extracted strictly from `decodedToken.uid`. Request-body or query-param UIDs are rejected.
-2. **Firestore UID Isolation**: All personal data is stored strictly under `users/{uid}/*`. Path validation blocks directory traversal (`../`).
-3. **Firestore Security Rules**: Direct client access is constrained by `firestore.rules`, enforcing `request.auth.uid == userId`.
-4. **Secret Manager**: Sensitive server credentials (e.g. Gemini API keys) are managed in Google Cloud Secret Manager with zero exposure to client bundles.
+### Critical Security Distinction: Client Rules vs. Server Admin SDK
+1. **Firestore Security Rules**: Direct client access (if any) is governed by `firestore.rules`, enforcing `request.auth.uid == userId`.
+2. **Server-Side Admin SDK Operations**: Firebase Admin SDK in Cloud Run **bypasses Firestore Security Rules**. Therefore, server-side token verification and UID derivation (`decodedToken.uid`) are strictly mandatory.
+3. **Zero Untrusted UIDs**: Request body/query UIDs are never used for authorization.
+4. **Secret Manager**: Sensitive server credentials are managed in Google Cloud Secret Manager with zero client leakage.
 
 ---
 
 ## 3. Mandatory Google Cloud Technologies
 
-| Google Cloud Technology | Role in MindVault |
-| :--- | :--- |
-| **Firebase Authentication** | User sign-in (Google OAuth + Email/Password), session persistence, and cryptographic ID tokens. |
-| **Cloud Firestore** | Isolated NoSQL document database partitioned by `users/{uid}/*`. |
-| **Gemini API** | Generative conversational reflection, summarization, memory extraction, and retrospectives via `@google/genai`. |
-| **Google Cloud Secret Manager** | Secure storage and access of server-side API keys and credentials. |
-| **Google Cloud Run** | Scalable, serverless container hosting the Next.js standalone application with non-root security. |
+| Google Cloud Technology | Role in MindVault | Status |
+| :--- | :--- | :--- |
+| **Firebase Authentication** | User sign-in (Google OAuth + Email/Password), session persistence, and cryptographic ID tokens. | **Implemented (Stage 1)** |
+| **Cloud Firestore** | Isolated NoSQL document database partitioned by `users/{authenticatedUid}/*`. | **Implemented (Stage 1)** |
+| **Gemini API** | Generative conversational reflection, summarization, memory extraction, and retrospectives via `@google/genai`. | **Foundation Implemented (Stage 1) / Endpoints in Stage 2** |
+| **Google Cloud Secret Manager** | Secure storage and access of server-side API keys and credentials. | **Implemented (Stage 1)** |
+| **Google Cloud Run** | Scalable, serverless container hosting the Next.js standalone application with non-root security. | **Implemented (Stage 1)** |
 
 ---
 
-## 4. Firestore Data Schema
+## 4. Current Stage Status & Implementation Roadmap
 
-```
-users/{uid}
-├── journals/{journalId}
-│   ├── id: string
-│   ├── uid: string
-│   ├── title: string
-│   ├── content: string
-│   ├── messages: JournalMessage[]
-│   ├── summary: string (optional)
-│   ├── topics: string[] (optional)
-│   ├── location: LocationObject (optional)
-│   ├── createdAt: ISO timestamp
-│   └── updatedAt: ISO timestamp
-│
-├── memories/{memoryId}
-│   ├── id: string
-│   ├── uid: string
-│   ├── category: 'EVENT' | 'PERSON' | 'PLACE' | 'GOAL' | 'DECISION' | 'ACHIEVEMENT' | 'IDEA' | 'CONCERN' | 'PREFERENCE'
-│   ├── title: string
-│   ├── description: string
-│   ├── sourceJournalId: string
-│   ├── sourceDate: string
-│   └── createdAt: ISO timestamp
-│
-├── goals/{goalId}
-│   ├── id: string
-│   ├── uid: string
-│   ├── title: string
-│   ├── status: 'active' | 'completed' | 'paused' | 'archived'
-│   ├── sourceJournalIds: string[]
-│   └── createdAt: ISO timestamp
-│
-└── rewinds/{rewindId}
-    ├── id: string
-    ├── uid: string
-    ├── period: '7d' | '30d' | '90d' | 'all'
-    ├── whatOccupiedYourMind: string[]
-    ├── recurringThemes: ThemeItem[]
-    ├── momentWorthRemembering: MomentItem
-    └── createdAt: ISO timestamp
+```mermaid
+flowchart TD
+    S1["[x] Stage 1: P0 Foundation (COMPLETE & AUDITED)\n- Auth, Token Verification & UID Derivation\n- UID-Scoped Repositories & Security Rules\n- Secret Manager Integration & Cloud Run Dockerfile\n- Automated Security Test Suite & Health Check"]
+    S2["[ ] Stage 2: P1 Core Product (NEXT)\n- Multi-turn Gemini Conversational Journal\n- Automatic Summarization Engine\n- Structured AI Memory Extraction (9 Categories)"]
+    S3["[ ] Stage 3: P2 Differentiation\n- Ask My Journal Retrieval with Source Grounding\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline"]
+    S4["[ ] Stage 4: P3 Polish & Maps\n- Goal Tracker with User State Confirmation\n- Google Places/Maps Memory Map\n- Privacy Center & Final Security Audit"]
+
+    S1 --> S2 --> S3 --> S4
 ```
 
 ---
@@ -142,7 +119,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## 6. Automated Testing & Verification
 
-MindVault includes an automated test suite verifying security controls, UID isolation, and API health:
+MindVault includes an automated security test suite:
 
 ```bash
 # Run all tests
@@ -154,6 +131,9 @@ npm run test:security
 # Type checking
 npm run typecheck
 
+# Linting
+npm run lint
+
 # Production build
 npm run build
 ```
@@ -161,8 +141,6 @@ npm run build
 ---
 
 ## 7. Cloud Run Deployment
-
-MindVault is configured for containerized deployment to Google Cloud Run:
 
 ```bash
 # 1. Build container image with Google Cloud Build
