@@ -11,7 +11,8 @@ Ordinary journals are write-only graveyards of thoughts: you write entries, and 
 
 **MindVault** transforms your personal journal into an active, intelligent memory vault:
 - Preserves what actually mattered
-- Extracts structured memories (achievements, decisions, ideas, goals, people, places)
+- Extracts structured memories across 9 categories (achievements, decisions, ideas, goals, people, places, events, concerns, preferences)
+- Generates concise, objective summaries without inventing facts
 - Detects recurring themes and personal evolution across 7, 30, 90 days, or all time
 - Enables natural language dialogue with your past thoughts with strict source grounding
 
@@ -25,10 +26,13 @@ USER BROWSER / CLIENT
  ├── 1. Firebase Authentication (Google Sign-in / Email & Password)
  │    └── Obtains cryptographically signed Firebase ID Token
  │
- ├── 2. Client-Side Navigation & UI (React 19, Tailwind CSS, Lucide)
+ ├── 2. Client-Side Experience (React 19, Tailwind CSS, Lucide)
+ │    ├── /dashboard — Navigation and active vault status
+ │    ├── /journal — Reflective multi-turn conversational journal
+ │    └── /memories — Categorized structured memory gallery (9 types) with source linking
  │
  ▼
-HTTPS API Request (with Authorization: Bearer <idToken>)
+HTTPS API Requests (with Authorization: Bearer <idToken>)
  │
  ▼
 GOOGLE CLOUD RUN BACKEND CONTAINER
@@ -40,14 +44,21 @@ GOOGLE CLOUD RUN BACKEND CONTAINER
  ├── 4. Server-Side Authorization Enforcement
  │    └── Rejects any client-supplied spoofed UID in request body or parameters
  │
- ├── 5. UID-Scoped Repository Layer (repositories.ts)
+ ├── 5. Zod Input & Output Schema Validation (validation/schemas.ts)
+ │    ├── Bounds input lengths (max 4000 chars/msg, max 50 turns)
+ │    └── Validates Gemini structured output schemas (titles, summaries, memories)
+ │
+ ├── 6. UID-Scoped Repository Layer (repositories.ts)
  │    └── Enforces path scoping: users/{authenticatedUid}/*
  │
- ├── 6. Google Cloud Secret Manager (secret-manager.ts)
- │    └── Fetches GEMINI_API_KEY with 10-minute in-memory caching
+ ├── 7. Google Cloud Secret Manager (secret-manager.ts)
+ │    └── Resolves GEMINI_API_KEY with 10-minute in-memory caching
  │
- └── 7. Gemini Service (gemini/client.ts)
-      └── Interacts with Gemini 2.5 Flash via @google/genai SDK
+ └── 8. Gemini Service Layer (gemini/journal-service.ts)
+      ├── Reflective multi-turn chat (gemini-2.5-flash)
+      ├── Resilient automatic titling (2-6 words)
+      ├── Objective journal summarizer & topic tagger
+      └── Structured memory extractor (9 strict categories)
  │
  ├─────────────────────────────────────────┬─────────────────────────────────────────┐
  ▼                                         ▼                                         ▼
@@ -67,11 +78,11 @@ Cloud Firestore                        Gemini API                            Sec
 
 | Google Cloud Technology | Role in MindVault | Status |
 | :--- | :--- | :--- |
-| **Firebase Authentication** | User sign-in (Google OAuth + Email/Password), session persistence, and cryptographic ID tokens. | **Implemented (Stage 1)** |
-| **Cloud Firestore** | Isolated NoSQL document database partitioned by `users/{authenticatedUid}/*`. | **Implemented (Stage 1)** |
-| **Gemini API** | Generative conversational reflection, summarization, memory extraction, and retrospectives via `@google/genai`. | **Foundation Implemented (Stage 1) / Endpoints in Stage 2** |
-| **Google Cloud Secret Manager** | Secure storage and access of server-side API keys and credentials. | **Implemented (Stage 1)** |
-| **Google Cloud Run** | Scalable, serverless container hosting the Next.js standalone application with non-root security. | **Implemented (Stage 1)** |
+| **Firebase Authentication** | User sign-in (Google OAuth + Email/Password), session persistence, and cryptographic ID tokens. | **Implemented** |
+| **Cloud Firestore** | Isolated NoSQL document database partitioned by `users/{authenticatedUid}/*`. | **Implemented** |
+| **Gemini API** | Generative conversational reflection, summarization, and structured memory extraction via `@google/genai`. | **Implemented** |
+| **Google Cloud Secret Manager** | Secure storage and access of server-side API keys and credentials. | **Implemented** |
+| **Google Cloud Run** | Scalable, serverless container hosting the Next.js standalone application with non-root security. | **Implemented** |
 
 ---
 
@@ -80,8 +91,8 @@ Cloud Firestore                        Gemini API                            Sec
 ```mermaid
 flowchart TD
     S1["[x] Stage 1: P0 Foundation (COMPLETE & AUDITED)\n- Auth, Token Verification & UID Derivation\n- UID-Scoped Repositories & Security Rules\n- Secret Manager Integration & Cloud Run Dockerfile\n- Automated Security Test Suite & Health Check"]
-    S2["[ ] Stage 2: P1 Core Product (NEXT)\n- Multi-turn Gemini Conversational Journal\n- Automatic Summarization Engine\n- Structured AI Memory Extraction (9 Categories)"]
-    S3["[ ] Stage 3: P2 Differentiation\n- Ask My Journal Retrieval with Source Grounding\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline"]
+    S2["[x] Stage 2: P1 Core Product (COMPLETE & VERIFIED)\n- Multi-turn Gemini Conversational Journal\n- Automatic Summarization Engine\n- Structured AI Memory Extraction (9 Categories)\n- Categorized Memories Gallery with Source Links"]
+    S3["[ ] Stage 3: P2 Differentiation (NEXT)\n- Ask My Journal Retrieval with Source Grounding\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline"]
     S4["[ ] Stage 4: P3 Polish & Maps\n- Goal Tracker with User State Confirmation\n- Google Places/Maps Memory Map\n- Privacy Center & Final Security Audit"]
 
     S1 --> S2 --> S3 --> S4
@@ -119,7 +130,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## 6. Automated Testing & Verification
 
-MindVault includes an automated security test suite:
+MindVault includes an automated test suite:
 
 ```bash
 # Run all tests
