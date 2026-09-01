@@ -1,0 +1,17 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git
+.gitignore
+.env
+.env*.local
+*.pem
+*.key
+*.serviceaccount.json
+*service-account*.json
+test
+coverage
+docs

@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for security enforcement
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Strict UID-isolated user root
+    match /users/{userId} {
+      // Direct access to user profile document
+      allow read, write: if isOwner(userId);
+      
+      // Journals subcollection: strictly isolated to the authenticated owner
+      match /journals/{journalId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      // Memories subcollection: strictly isolated to the authenticated owner
+      match /memories/{memoryId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      // Goals subcollection: strictly isolated to the authenticated owner
+      match /goals/{goalId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      // Insights subcollection: strictly isolated to the authenticated owner
+      match /insights/{insightId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      // Rewinds subcollection: strictly isolated to the authenticated owner
+      match /rewinds/{rewindId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
