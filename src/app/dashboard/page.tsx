@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { BookOpen, Sparkles, Target, Shield, Compass, ArrowRight, Loader2, Lock, Search, Clock, TrendingUp } from 'lucide-react';
+import { BookOpen, Sparkles, Target, Shield, Compass, ArrowRight, Loader2, Lock, Search, Clock, TrendingUp, MapPin, Brain } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -133,6 +133,40 @@ export default function DashboardPage() {
             </h3>
             <p className="text-xs text-slate-500 mt-1">
               Chronological evolution and pattern shift detection.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          href="/map"
+          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-600 shadow-sm transition-all hover:shadow-md space-y-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+              Memory Map
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Geographic footprint of places woven into your story.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          href="/insights"
+          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 shadow-sm transition-all hover:shadow-md space-y-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+            <Brain className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+              Insights
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Emerging interests, recurring themes & goal momentum.
             </p>
           </div>
         </Link>

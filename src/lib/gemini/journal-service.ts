@@ -6,6 +6,7 @@ import {
   MINDVAULT_MEMORY_EXTRACTION_SYSTEM_PROMPT,
   MINDVAULT_ASK_SYSTEM_PROMPT,
   MINDVAULT_REWIND_SYSTEM_PROMPT,
+  MINDVAULT_INSIGHTS_SYSTEM_PROMPT,
 } from '@/lib/gemini/system-prompt';
 import {
   JournalTitleOutputSchema,
@@ -14,8 +15,9 @@ import {
   ExtractedMemoryItemSchema,
   AskJournalOutputSchema,
   RewindOutputSchema,
+  InsightsOutputSchema,
 } from '@/lib/validation/schemas';
-import { JournalMessage, MemoryItem, EvidenceItem, AskJournalResult, JournalEntry } from '@/types';
+import { JournalMessage, MemoryItem, EvidenceItem, AskJournalResult, JournalEntry, InsightsReport } from '@/types';
 import { logger } from '@/lib/observability/logger';
 import { z } from 'zod';
 
@@ -381,3 +383,140 @@ export async function synthesizeRewind(
     return fallbackOutput;
   }
 }
+
+/**
+ * 7. Synthesizes a grounded personal growth and pattern analysis for MindVault Insights.
+ */
+export async function synthesizeInsights(
+  stats: { totalJournals: number; totalMemories: number; activeDays: number },
+  topicChanges: { topic: string; earlierCount: number; recentCount: number }[],
+  topThemes: { theme: string; count: number }[],
+  goalItems: { goal: string; status: 'active' | 'completed' | 'dormant'; sourceJournalId?: string }[],
+  peopleItems: { name: string; mentions: number }[],
+  placeItems: { name: string; mentions: number }[],
+  evidenceJournals: JournalEntry[],
+  evidenceMemories: MemoryItem[]
+): Promise<InsightsReport> {
+  const fallbackReport: InsightsReport = {
+    summary: `Across ${stats.totalJournals} journal entries and ${stats.activeDays} active days, your reflections show steady personal exploration with ${topThemes.length} recurring themes.`,
+    periodStats: stats,
+    recurringThemes: topThemes.slice(0, 5).map((t) => ({
+      theme: t.theme,
+      count: t.count,
+      description: `Discussions and reflections on ${t.theme} appeared ${t.count} times.`,
+    })),
+    emergingInterests: topicChanges.slice(0, 4).map((tc) => ({
+      interest: tc.topic,
+      earlierCount: tc.earlierCount,
+      recentCount: tc.recentCount,
+      explanation: `Appeared ${tc.recentCount} times in recent entries compared to ${tc.earlierCount} earlier.`,
+    })),
+    goalMomentum: goalItems.slice(0, 5),
+    peopleAndPlaces: {
+      topPeople: peopleItems.slice(0, 5),
+      topPlaces: placeItems.slice(0, 5),
+    },
+    changes: topicChanges.slice(0, 3).map((tc) => ({
+      area: tc.topic,
+      shift: `Focus shifted toward ${tc.topic} with increased frequency in recent reflections.`,
+    })),
+    personalPatterns: [
+      `Recorded ${stats.totalJournals} reflections across ${stats.activeDays} active days.`,
+      stats.totalMemories > 0 ? `Preserved ${stats.totalMemories} structured memories across your experiences.` : 'Building initial memory baseline.',
+    ],
+    reflection: 'Your journal documents an intentional, evolving journey of continuous reflection and learning.',
+    sources: evidenceJournals.slice(0, 5).map((j) => ({
+      sourceType: 'journal' as const,
+      sourceId: j.id,
+      title: j.title || 'Journal Entry',
+    })),
+    isEmpty: stats.totalJournals === 0,
+  };
+
+  if (evidenceJournals.length === 0) {
+    return fallbackReport;
+  }
+
+  try {
+    const ai = await getGeminiClient();
+
+    const formattedDataset = `
+PERIOD_STATS:
+- Total Journals: ${stats.totalJournals}
+- Total Memories: ${stats.totalMemories}
+- Active Days: ${stats.activeDays}
+
+TOPIC_FREQUENCY_COMPARISON (Earlier vs Recent):
+${topicChanges.map((tc) => `- ${tc.topic}: ${tc.earlierCount} earlier -> ${tc.recentCount} recently`).join('\n')}
+
+TOP_THEMES:
+${topThemes.map((tt) => `- ${tt.theme} (${tt.count} entries)`).join('\n')}
+
+GOALS:
+${goalItems.map((g) => `- [${g.status.toUpperCase()}] ${g.goal}`).join('\n')}
+
+PEOPLE_MENTIONS:
+${peopleItems.map((p) => `- ${p.name}: ${p.mentions}`).join('\n')}
+
+PLACES_MENTIONS:
+${placeItems.map((pl) => `- ${pl.name}: ${pl.mentions}`).join('\n')}
+
+JOURNAL_SAMPLES:
+${evidenceJournals.slice(0, 10).map((j) => `[ID: ${j.id}] ${j.title}: ${j.summary || j.content.slice(0, 150)}`).join('\n')}
+`;
+
+    const promptText = `Interpret the following verified journal analytics into structured JSON conforming to the schema:\n\n<verified_insights_dataset>\n${formattedDataset}\n</verified_insights_dataset>`;
+
+    const response = await ai.models.generateContent({
+      model: DEFAULT_GEMINI_MODEL,
+      contents: promptText,
+      config: {
+        systemInstruction: MINDVAULT_INSIGHTS_SYSTEM_PROMPT,
+        responseMimeType: 'application/json',
+        temperature: 0.25,
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const rawJson = cleanJsonText(response.text || '{}');
+    const parsed = JSON.parse(rawJson);
+    const validated = InsightsOutputSchema.parse(parsed);
+
+    // CRITICAL SECURITY ENFORCEMENT: Source Validation
+    const validJournalIds = new Set(evidenceJournals.map((j) => j.id));
+    const validMemoryIds = new Set(evidenceMemories.map((m) => m.id));
+
+    const validatedSources = validated.sources.filter((s) => {
+      if (s.sourceType === 'journal') return validJournalIds.has(s.sourceId);
+      if (s.sourceType === 'memory') return validMemoryIds.has(s.sourceId);
+      return false;
+    });
+
+    const validatedGoals = validated.goalMomentum.map((g) => ({
+      ...g,
+      sourceJournalId: g.sourceJournalId && validJournalIds.has(g.sourceJournalId) ? g.sourceJournalId : undefined,
+    }));
+
+    return {
+      summary: validated.summary,
+      periodStats: stats,
+      recurringThemes: validated.recurringThemes.length > 0 ? validated.recurringThemes : fallbackReport.recurringThemes,
+      emergingInterests: validated.emergingInterests.length > 0 ? validated.emergingInterests : fallbackReport.emergingInterests,
+      goalMomentum: validatedGoals.length > 0 ? validatedGoals : fallbackReport.goalMomentum,
+      peopleAndPlaces: validated.peopleAndPlaces,
+      changes: validated.changes.length > 0 ? validated.changes : fallbackReport.changes,
+      personalPatterns: validated.personalPatterns.length > 0 ? validated.personalPatterns : fallbackReport.personalPatterns,
+      reflection: validated.reflection,
+      sources: validatedSources.length > 0 ? validatedSources : fallbackReport.sources,
+      isEmpty: false,
+    };
+  } catch (err: any) {
+    logger.warn('Insights synthesis failed; using deterministic fallback', {
+      service: 'GeminiService',
+      action: 'synthesizeInsights',
+      errorCode: err?.message,
+    });
+    return fallbackReport;
+  }
+}
+

@@ -41,12 +41,79 @@ function scoreText(text: string, tokens: string[]): number {
 }
 
 /**
- * Retrieves and constructs a bounded evidence set for Ask My Journal.
+ * Detects temporal keywords and returns a target date window if specified in the query.
+ */
+export function detectTemporalIntent(query: string): { isTemporal: boolean; startDate?: Date; endDate?: Date } {
+  const q = query.toLowerCase();
+  const now = new Date();
+
+  if (q.includes('yesterday') || q.includes('today')) {
+    const start = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    return { isTemporal: true, startDate: start, endDate: now };
+  }
+  if (q.includes('last week') || q.includes('past week') || q.includes('this week')) {
+    const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return { isTemporal: true, startDate: start, endDate: now };
+  }
+  if (q.includes('recently') || q.includes('lately') || q.includes('last month') || q.includes('past month')) {
+    const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return { isTemporal: true, startDate: start, endDate: now };
+  }
+  if (q.includes('this year') || q.includes('earlier this year')) {
+    const start = new Date(now.getFullYear(), 0, 1);
+    return { isTemporal: true, startDate: start, endDate: now };
+  }
+
+  return { isTemporal: false };
+}
+
+/**
+ * Identifies target memory categories from query intent.
+ */
+export function detectCategoryIntent(query: string): Set<string> {
+  const q = query.toLowerCase();
+  const categories = new Set<string>();
+
+  if (q.includes('goal') || q.includes('target') || q.includes('aim') || q.includes('plan')) {
+    categories.add('GOAL');
+  }
+  if (q.includes('decision') || q.includes('chose') || q.includes('decide') || q.includes('choice')) {
+    categories.add('DECISION');
+  }
+  if (q.includes('idea') || q.includes('project') || q.includes('concept') || q.includes('building')) {
+    categories.add('IDEA');
+  }
+  if (q.includes('person') || q.includes('who') || q.includes('friend') || q.includes('talked with')) {
+    categories.add('PERSON');
+  }
+  if (q.includes('place') || q.includes('where') || q.includes('travel') || q.includes('city') || q.includes('trip')) {
+    categories.add('PLACE');
+  }
+  if (q.includes('win') || q.includes('achieve') || q.includes('accomplish') || q.includes('proud')) {
+    categories.add('ACHIEVEMENT');
+  }
+  if (q.includes('worried') || q.includes('worry') || q.includes('concern') || q.includes('anxious') || q.includes('stress')) {
+    categories.add('CONCERN');
+  }
+  if (q.includes('prefer') || q.includes('like') || q.includes('dislike') || q.includes('habit')) {
+    categories.add('PREFERENCE');
+  }
+
+  return categories;
+}
+
+/**
+ * Retrieves and constructs a bounded evidence set for Ask My Journal using multi-signal hybrid scoring.
+ * 
+ * SIGNALS:
+ * 1. Lexical match (tokens + exact phrase matching)
+ * 2. Topic tag matches
+ * 3. Memory Category Intent Boost
+ * 4. Temporal window relevance
+ * 5. Recency decay weighting
  * 
  * SECURITY INVARIANT:
  * - Scoped strictly to `authenticatedUid`.
- * - Cross-user data access is mathematically impossible because calls are restricted
- *   to `JournalRepository.list(authenticatedUid)` and `MemoryRepository.list(authenticatedUid)`.
  */
 export async function retrieveEvidenceForQuestion(
   authenticatedUid: string,
@@ -54,6 +121,9 @@ export async function retrieveEvidenceForQuestion(
   maxResults: number = 10
 ): Promise<EvidenceItem[]> {
   const tokens = tokenizeQuery(question);
+  const temporal = detectTemporalIntent(question);
+  const categoryIntents = detectCategoryIntent(question);
+  const now = Date.now();
 
   // 1. Fetch user's journals and memories
   const [journals, memories] = await Promise.all([
@@ -63,23 +133,42 @@ export async function retrieveEvidenceForQuestion(
 
   const candidates: EvidenceItem[] = [];
 
+  // Helper to score recency
+  const getRecencyScore = (dateStr: string) => {
+    const elapsedDays = Math.max(0, (now - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, 2.0 - elapsedDays * 0.05); // Up to +2 points, gently decays
+  };
+
   // 2. Score and convert Journals
   for (const j of journals) {
-    let score = scoreText(j.title, tokens) * 2;
+    let score = scoreText(j.title, tokens) * 2.5;
+
+    // Exact title or query inclusion bonus
+    if (question.toLowerCase().includes(j.title.toLowerCase()) && j.title.length > 4) {
+      score += 4.0;
+    }
+
     if (j.summary) {
-      score += scoreText(j.summary, tokens) * 1.5;
+      score += scoreText(j.summary, tokens) * 2.0;
     }
     if (j.topics && j.topics.length > 0) {
-      score += scoreText(j.topics.join(' '), tokens) * 2;
+      score += scoreText(j.topics.join(' '), tokens) * 2.5;
     }
     if (j.content) {
       score += scoreText(j.content.slice(0, 2000), tokens);
     }
 
-    // Include recent journals even if zero match if user asks broad temporal question like "lately" or "recent"
-    const isTemporal = tokens.some((t) => ['lately', 'recent', 'recently', 'today', 'yesterday'].includes(t));
-    if (score > 0 || isTemporal) {
-      // Bound text content to prevent token inflation
+    // Temporal signal boost
+    if (temporal.isTemporal && temporal.startDate && temporal.endDate) {
+      const entryDate = new Date(j.createdAt);
+      if (entryDate >= temporal.startDate && entryDate <= temporal.endDate) {
+        score += 3.5;
+      }
+    }
+
+    score += getRecencyScore(j.createdAt);
+
+    if (score > 1.5 || temporal.isTemporal) {
       const snippet = j.summary || (j.content.length > 400 ? `${j.content.slice(0, 400)}...` : j.content);
       candidates.push({
         sourceType: 'journal',
@@ -94,14 +183,30 @@ export async function retrieveEvidenceForQuestion(
 
   // 3. Score and convert Memories
   for (const m of memories) {
-    let score = scoreText(m.title, tokens) * 2.5;
-    score += scoreText(m.description, tokens) * 1.5;
-    score += scoreText(m.category, tokens) * 2;
+    let score = scoreText(m.title, tokens) * 3.0;
+    score += scoreText(m.description, tokens) * 2.0;
+    score += scoreText(m.category, tokens) * 2.5;
+
     if (m.tags && m.tags.length > 0) {
-      score += scoreText(m.tags.join(' '), tokens) * 1.5;
+      score += scoreText(m.tags.join(' '), tokens) * 2.0;
     }
 
-    if (score > 0) {
+    // Category intent boost
+    if (categoryIntents.has(m.category)) {
+      score += 4.0;
+    }
+
+    // Temporal signal boost
+    const memDate = m.sourceDate ? new Date(m.sourceDate) : new Date(m.createdAt);
+    if (temporal.isTemporal && temporal.startDate && temporal.endDate) {
+      if (memDate >= temporal.startDate && memDate <= temporal.endDate) {
+        score += 3.0;
+      }
+    }
+
+    score += getRecencyScore(m.sourceDate || m.createdAt);
+
+    if (score > 1.5 || categoryIntents.has(m.category)) {
       candidates.push({
         sourceType: 'memory',
         sourceId: m.id,
@@ -121,7 +226,7 @@ export async function retrieveEvidenceForQuestion(
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
-  // If no candidates matched by keywords, fall back to the most recent 5 journals
+  // If no candidates met threshold but user has journals, provide most recent 5
   if (candidates.length === 0 && journals.length > 0) {
     for (const j of journals.slice(0, 5)) {
       candidates.push({
@@ -148,3 +253,4 @@ export function validateEvidenceSource(
 ): EvidenceItem | null {
   return retrievedEvidence.find((e) => e.sourceId === sourceId) || null;
 }
+

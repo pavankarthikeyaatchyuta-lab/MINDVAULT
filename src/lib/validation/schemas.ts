@@ -188,3 +188,86 @@ export const TimelineFilterSchema = z.enum([
   'PREFERENCE',
 ]);
 
+// =============================================================================
+// 8. Stage 4: MindVault Insights & Memory Map Schemas
+// =============================================================================
+export const InsightsOutputSchema = z.object({
+  summary: z.string().min(1),
+  recurringThemes: z
+    .array(
+      z.object({
+        theme: z.string().min(1),
+        count: z.number().int().nonnegative(),
+        description: z.string().min(1),
+      })
+    )
+    .max(6)
+    .default([]),
+  emergingInterests: z
+    .array(
+      z.object({
+        interest: z.string().min(1),
+        earlierCount: z.number().int().nonnegative(),
+        recentCount: z.number().int().nonnegative(),
+        explanation: z.string().min(1),
+      })
+    )
+    .max(5)
+    .default([]),
+  goalMomentum: z
+    .array(
+      z.object({
+        goal: z.string().min(1),
+        status: z.enum(['active', 'completed', 'dormant']),
+        sourceJournalId: z.string().optional(),
+      })
+    )
+    .max(6)
+    .default([]),
+  peopleAndPlaces: z.object({
+    topPeople: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          mentions: z.number().int().nonnegative(),
+        })
+      )
+      .max(5)
+      .default([]),
+    topPlaces: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          mentions: z.number().int().nonnegative(),
+        })
+      )
+      .max(5)
+      .default([]),
+  }),
+  changes: z
+    .array(
+      z.object({
+        area: z.string().min(1),
+        shift: z.string().min(1),
+      })
+    )
+    .max(5)
+    .default([]),
+  personalPatterns: z.array(z.string().min(1)).max(5).default([]),
+  reflection: z.string().min(1),
+  sources: z
+    .array(
+      z.object({
+        sourceType: z.enum(['journal', 'memory']),
+        sourceId: z.string().min(1),
+        title: z.string().min(1),
+      })
+    )
+    .default([]),
+});
+
+export const MapPlacesQuerySchema = z.object({
+  query: z.string().max(100).optional(),
+});
+
+

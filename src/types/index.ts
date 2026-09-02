@@ -155,3 +155,70 @@ export interface TimelineChangeInsight {
   shiftSummary: string;
 }
 
+export interface MapPlaceMemoryRef {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  sourceJournalId: string;
+}
+
+export interface MapPlaceJournalRef {
+  id: string;
+  title: string;
+  date: string;
+}
+
+export interface MapPlaceNode {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  mentionsCount: number;
+  lastMentioned: string;
+  memories: MapPlaceMemoryRef[];
+  journals: MapPlaceJournalRef[];
+}
+
+export interface InsightsReport {
+  summary: string;
+  periodStats: {
+    totalJournals: number;
+    totalMemories: number;
+    activeDays: number;
+  };
+  recurringThemes: {
+    theme: string;
+    count: number;
+    description: string;
+  }[];
+  emergingInterests: {
+    interest: string;
+    earlierCount: number;
+    recentCount: number;
+    explanation: string;
+  }[];
+  goalMomentum: {
+    goal: string;
+    status: 'active' | 'completed' | 'dormant';
+    sourceJournalId?: string;
+  }[];
+  peopleAndPlaces: {
+    topPeople: { name: string; mentions: number }[];
+    topPlaces: { name: string; mentions: number }[];
+  };
+  changes: {
+    area: string;
+    shift: string;
+  }[];
+  personalPatterns: string[];
+  reflection: string;
+  sources: {
+    sourceType: 'journal' | 'memory';
+    sourceId: string;
+    title: string;
+  }[];
+  isEmpty?: boolean;
+}
+
+

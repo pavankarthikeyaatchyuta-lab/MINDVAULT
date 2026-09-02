@@ -32,6 +32,8 @@
 | `/api/journal/ask` | POST | **Protected (Firebase ID Token)** | Grounded natural-language query with validated source citations. | **Implemented (Stage 3)** |
 | `/api/journal/rewind` | POST | **Protected (Firebase ID Token)** | Deterministic stats & grounded retrospective synthesis (7d/30d/90d/all). | **Implemented (Stage 3)** |
 | `/api/timeline` | GET | **Protected (Firebase ID Token)** | Unified chronological timeline with category filters & pattern shift insight. | **Implemented (Stage 3)** |
+| `/api/map/places` | GET | **Protected (Firebase ID Token)** | Aggregates user PLACE memories & journal locations with deterministic coordinates. | **Implemented (Stage 4)** |
+| `/api/insights` | GET | **Protected (Firebase ID Token)** | Grounded personal pattern analysis, goal momentum, and emerging interests. | **Implemented (Stage 4)** |
 
 ---
 
