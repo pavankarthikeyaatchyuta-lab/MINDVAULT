@@ -4,14 +4,18 @@ import {
   MINDVAULT_TITLE_SYSTEM_PROMPT,
   MINDVAULT_SUMMARY_SYSTEM_PROMPT,
   MINDVAULT_MEMORY_EXTRACTION_SYSTEM_PROMPT,
+  MINDVAULT_ASK_SYSTEM_PROMPT,
+  MINDVAULT_REWIND_SYSTEM_PROMPT,
 } from '@/lib/gemini/system-prompt';
 import {
   JournalTitleOutputSchema,
   JournalSummaryOutputSchema,
   ExtractedMemoriesOutputSchema,
   ExtractedMemoryItemSchema,
+  AskJournalOutputSchema,
+  RewindOutputSchema,
 } from '@/lib/validation/schemas';
-import { JournalMessage, MemoryItem } from '@/types';
+import { JournalMessage, MemoryItem, EvidenceItem, AskJournalResult, JournalEntry } from '@/types';
 import { logger } from '@/lib/observability/logger';
 import { z } from 'zod';
 
@@ -193,5 +197,187 @@ export async function extractMemoriesFromJournal(
       errorCode: err?.message,
     });
     return [];
+  }
+}
+
+/**
+ * 5. Synthesizes an answer to a natural-language question using ONLY retrieved evidence.
+ * Strict source validation ensures hallucinated source IDs are rejected.
+ */
+export async function askMyJournal(
+  question: string,
+  evidence: EvidenceItem[]
+): Promise<AskJournalResult> {
+  // If no evidence retrieved, return immediately without invoking Gemini
+  if (!evidence || evidence.length === 0) {
+    return {
+      answer: "I couldn't find enough information in your journal to answer that confidently.",
+      confidence: 'low',
+      sources: [],
+    };
+  }
+
+  try {
+    const ai = await getGeminiClient();
+
+    const formattedEvidence = evidence
+      .map(
+        (e) =>
+          `[SOURCE_ID: ${e.sourceId}] TYPE: ${e.sourceType} | DATE: ${e.date} | TITLE: ${e.title}\nCONTENT: ${e.content}`
+      )
+      .join('\n\n---\n\n');
+
+    const promptText = `QUESTION:\n"${question}"\n\n<verified_journal_evidence>\n${formattedEvidence}\n</verified_journal_evidence>\n\nAnswer the question concisely and cite exact matching sourceIds from the evidence.`;
+
+    const response = await ai.models.generateContent({
+      model: DEFAULT_GEMINI_MODEL,
+      contents: promptText,
+      config: {
+        systemInstruction: MINDVAULT_ASK_SYSTEM_PROMPT,
+        responseMimeType: 'application/json',
+        temperature: 0.2,
+        maxOutputTokens: 600,
+      },
+    });
+
+    const rawJson = cleanJsonText(response.text || '{}');
+    const parsed = JSON.parse(rawJson);
+    const validated = AskJournalOutputSchema.parse(parsed);
+
+    // CRITICAL SECURITY ENFORCEMENT: Source Validation
+    // Discard any sourceId not genuinely present in the user-owned retrieved evidence
+    const verifiedSources = validated.sources
+      .map((s) => {
+        const matchingEvidence = evidence.find((e) => e.sourceId === s.sourceId);
+        if (!matchingEvidence) return null;
+        return {
+          sourceType: matchingEvidence.sourceType,
+          sourceId: matchingEvidence.sourceId,
+          title: matchingEvidence.title,
+          date: matchingEvidence.date,
+          excerpt: s.excerpt || matchingEvidence.content.slice(0, 150),
+        };
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null);
+
+    return {
+      answer: validated.answer,
+      confidence: validated.confidence,
+      sources: verifiedSources,
+    };
+  } catch (err: any) {
+    logger.warn('Ask My Journal synthesis failed or returned invalid schema', {
+      service: 'GeminiService',
+      action: 'askMyJournal',
+      errorCode: err?.message,
+    });
+    return {
+      answer: "I couldn't find enough information in your journal to answer that confidently right now.",
+      confidence: 'low',
+      sources: [],
+    };
+  }
+}
+
+/**
+ * 6. Synthesizes a grounded retrospective for Journal Rewind from verified stats and records.
+ */
+export async function synthesizeRewind(
+  periodLabel: string,
+  stats: { journalCount: number; activeDays: number; topTopics: string[] },
+  evidenceJournals: JournalEntry[],
+  evidenceMemories: MemoryItem[]
+): Promise<z.infer<typeof RewindOutputSchema>> {
+  const fallbackOutput = {
+    highlights: [],
+    recurringThemes: stats.topTopics.map((t) => ({
+      theme: t,
+      description: `Discussions relating to ${t} occurred frequently.`,
+      sourceJournalIds: evidenceJournals.slice(0, 2).map((j) => j.id),
+    })),
+    goals: [],
+    reflection: `During this ${periodLabel} period, you recorded ${stats.journalCount} journal entries across ${stats.activeDays} active days, reflecting most frequently on ${stats.topTopics.join(', ') || 'personal thoughts'}.`,
+    oneMomentToRemember: evidenceJournals[0]
+      ? {
+          title: evidenceJournals[0].title || 'A Notable Journal Entry',
+          description: evidenceJournals[0].summary || 'An important reflection recorded during this period.',
+          sourceJournalId: evidenceJournals[0].id,
+        }
+      : null,
+  };
+
+  if (evidenceJournals.length === 0) {
+    return fallbackOutput;
+  }
+
+  try {
+    const ai = await getGeminiClient();
+
+    const formattedStats = `PERIOD: ${periodLabel}\nTOTAL_ENTRIES: ${stats.journalCount}\nACTIVE_DAYS: ${stats.activeDays}\nTOP_TOPICS: ${stats.topTopics.join(', ')}`;
+
+    const formattedJournals = evidenceJournals
+      .slice(0, 15)
+      .map(
+        (j) =>
+          `[JOURNAL_ID: ${j.id}] DATE: ${j.createdAt} | TITLE: ${j.title}\nSUMMARY: ${j.summary || j.content.slice(0, 200)}`
+      )
+      .join('\n\n');
+
+    const formattedMemories = evidenceMemories
+      .slice(0, 15)
+      .map(
+        (m) =>
+          `[MEMORY_ID: ${m.id}] CATEGORY: ${m.category} | TITLE: ${m.title} | DATE: ${m.sourceDate || m.createdAt}\nDESC: ${m.description} | SOURCE_JOURNAL: ${m.sourceJournalId}`
+      )
+      .join('\n\n');
+
+    const promptText = `STATISTICS:\n${formattedStats}\n\n<verified_rewind_evidence>\nJOURNALS:\n${formattedJournals}\n\nMEMORIES:\n${formattedMemories}\n</verified_rewind_evidence>\n\nSynthesize a grounded, inspiring retrospective in JSON conforming to the schema.`;
+
+    const response = await ai.models.generateContent({
+      model: DEFAULT_GEMINI_MODEL,
+      contents: promptText,
+      config: {
+        systemInstruction: MINDVAULT_REWIND_SYSTEM_PROMPT,
+        responseMimeType: 'application/json',
+        temperature: 0.3,
+        maxOutputTokens: 800,
+      },
+    });
+
+    const rawJson = cleanJsonText(response.text || '{}');
+    const parsed = JSON.parse(rawJson);
+    const validated = RewindOutputSchema.parse(parsed);
+
+    // CRITICAL SECURITY ENFORCEMENT: Validate source journal IDs against evidence
+    const validJournalIds = new Set(evidenceJournals.map((j) => j.id));
+
+    const validatedHighlights = validated.highlights.filter((h) =>
+      validJournalIds.has(h.sourceJournalId)
+    );
+
+    const validatedThemes = validated.recurringThemes.map((t) => ({
+      ...t,
+      sourceJournalIds: t.sourceJournalIds.filter((id) => validJournalIds.has(id)),
+    }));
+
+    let validatedMoment = validated.oneMomentToRemember;
+    if (validatedMoment && !validJournalIds.has(validatedMoment.sourceJournalId)) {
+      validatedMoment = fallbackOutput.oneMomentToRemember;
+    }
+
+    return {
+      highlights: validatedHighlights.length > 0 ? validatedHighlights : fallbackOutput.highlights,
+      recurringThemes: validatedThemes.length > 0 ? validatedThemes : fallbackOutput.recurringThemes,
+      goals: validated.goals,
+      reflection: validated.reflection || fallbackOutput.reflection,
+      oneMomentToRemember: validatedMoment,
+    };
+  } catch (err: any) {
+    logger.warn('Rewind synthesis failed or returned invalid schema; using deterministic fallback', {
+      service: 'GeminiService',
+      action: 'synthesizeRewind',
+      errorCode: err?.message,
+    });
+    return fallbackOutput;
   }
 }

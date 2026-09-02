@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { BookOpen, Sparkles, Target, Shield, Compass, ArrowRight, Loader2, Lock } from 'lucide-react';
+import { BookOpen, Sparkles, Target, Shield, Compass, ArrowRight, Loader2, Lock, Search, Clock, TrendingUp } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Navigation Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         
         <Link
           href="/journal"
@@ -64,7 +64,7 @@ export default function DashboardPage() {
               Journal & Chat
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Multi-turn Gemini reflection & thought companion.
+              Reflective multi-turn Gemini thinking companion.
             </p>
           </div>
         </Link>
@@ -81,41 +81,58 @@ export default function DashboardPage() {
               Memories
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Structured decisions, ideas, achievements & places.
+              Categorized structured decisions, achievements & ideas.
             </p>
           </div>
         </Link>
 
         <Link
-          href="/goals"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 shadow-sm transition-all hover:shadow-md space-y-3"
+          href="/ask"
+          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-600 shadow-sm transition-all hover:shadow-md space-y-3"
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
-            <Target className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform">
+            <Search className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-              Goals
+            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+              Ask My Journal
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Track progress identified from your conversations.
+              Natural-language query with verified source citations.
             </p>
           </div>
         </Link>
 
         <Link
-          href="/privacy"
+          href="/rewind"
           className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md space-y-3"
         >
           <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
-            <Shield className="w-5 h-5" />
+            <Clock className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              Privacy Center
+              Journal Rewind
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Audit data isolation and security controls.
+              7/30/90d & all-time visual retrospective synthesis.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          href="/timeline"
+          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm transition-all hover:shadow-md space-y-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-105 transition-transform">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+              Growth Timeline
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Chronological evolution and pattern shift detection.
             </p>
           </div>
         </Link>

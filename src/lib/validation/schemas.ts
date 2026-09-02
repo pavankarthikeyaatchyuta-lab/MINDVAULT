@@ -95,3 +95,96 @@ export const MemoryUpdateRequestSchema = z.object({
   description: z.string().min(1).max(1000).optional(),
   tags: z.array(z.string().max(50)).max(10).optional(),
 });
+
+// =============================================================================
+// 5. Stage 3: Ask My Journal Schemas
+// =============================================================================
+export const AskJournalRequestSchema = z.object({
+  question: z
+    .string()
+    .min(1, 'Question cannot be empty')
+    .max(1000, 'Question exceeds maximum length of 1000 characters'),
+});
+
+export const AskSourceReferenceSchema = z.object({
+  sourceType: z.enum(['journal', 'memory', 'goal']),
+  sourceId: z.string(),
+  title: z.string(),
+  date: z.string(),
+  excerpt: z.string().optional(),
+});
+
+export const AskJournalOutputSchema = z.object({
+  answer: z.string().min(1),
+  confidence: z.enum(['high', 'medium', 'low']),
+  sources: z.array(AskSourceReferenceSchema).default([]),
+});
+
+// =============================================================================
+// 6. Stage 3: Journal Rewind Schemas
+// =============================================================================
+export const RewindRangeSchema = z.enum(['7d', '30d', '90d', 'all']);
+
+export const RewindRequestSchema = z.object({
+  range: RewindRangeSchema,
+});
+
+export const RewindOutputSchema = z.object({
+  highlights: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        description: z.string().min(1),
+        sourceJournalId: z.string(),
+      })
+    )
+    .max(5)
+    .default([]),
+  recurringThemes: z
+    .array(
+      z.object({
+        theme: z.string().min(1),
+        description: z.string().min(1),
+        sourceJournalIds: z.array(z.string()).default([]),
+      })
+    )
+    .max(5)
+    .default([]),
+  goals: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        status: z.string(),
+        sourceJournalId: z.string().optional(),
+      })
+    )
+    .max(5)
+    .default([]),
+  reflection: z.string().min(1),
+  oneMomentToRemember: z
+    .object({
+      title: z.string().min(1),
+      description: z.string().min(1),
+      sourceJournalId: z.string(),
+    })
+    .nullable()
+    .optional(),
+});
+
+// =============================================================================
+// 7. Stage 3: Timeline Schemas
+// =============================================================================
+export const TimelineFilterSchema = z.enum([
+  'ALL',
+  'JOURNAL',
+  'ACHIEVEMENT',
+  'DECISION',
+  'IDEA',
+  'GOAL',
+  'EVENT',
+  'PERSON',
+  'PLACE',
+  'CONCERN',
+  'PREFERENCE',
+]);
+

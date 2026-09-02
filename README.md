@@ -92,7 +92,7 @@ Cloud Firestore                        Gemini API                            Sec
 flowchart TD
     S1["[x] Stage 1: P0 Foundation (COMPLETE & AUDITED)\n- Auth, Token Verification & UID Derivation\n- UID-Scoped Repositories & Security Rules\n- Secret Manager Integration & Cloud Run Dockerfile\n- Automated Security Test Suite & Health Check"]
     S2["[x] Stage 2: P1 Core Product (COMPLETE & VERIFIED)\n- Multi-turn Gemini Conversational Journal\n- Automatic Summarization Engine\n- Structured AI Memory Extraction (9 Categories)\n- Categorized Memories Gallery with Source Links"]
-    S3["[ ] Stage 3: P2 Differentiation (NEXT)\n- Ask My Journal Retrieval with Source Grounding\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline"]
+    S3["[x] Stage 3: P2 Differentiation (COMPLETE & VERIFIED)\n- Ask My Journal Retrieval with Source Grounding\n- Strict Hallucination Source Validation\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline & Shift Insights"]
     S4["[ ] Stage 4: P3 Polish & Maps\n- Goal Tracker with User State Confirmation\n- Google Places/Maps Memory Map\n- Privacy Center & Final Security Audit"]
 
     S1 --> S2 --> S3 --> S4

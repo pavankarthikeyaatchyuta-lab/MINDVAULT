@@ -101,3 +101,57 @@ export interface ApiResponse<T = any> {
     message: string;
   };
 }
+
+export interface EvidenceItem {
+  sourceType: 'journal' | 'memory' | 'goal';
+  sourceId: string;
+  title: string;
+  date: string;
+  content: string;
+  relevance: number;
+}
+
+export interface AskSourceReference {
+  sourceType: 'journal' | 'memory' | 'goal';
+  sourceId: string;
+  title: string;
+  date: string;
+  excerpt?: string;
+}
+
+export interface AskJournalResult {
+  answer: string;
+  confidence: 'high' | 'medium' | 'low';
+  sources: AskSourceReference[];
+}
+
+export type TimelineFilterType =
+  | 'ALL'
+  | 'JOURNAL'
+  | 'ACHIEVEMENT'
+  | 'DECISION'
+  | 'IDEA'
+  | 'GOAL'
+  | 'EVENT'
+  | 'PERSON'
+  | 'PLACE'
+  | 'CONCERN'
+  | 'PREFERENCE';
+
+export interface TimelineItem {
+  id: string;
+  type: TimelineFilterType;
+  title: string;
+  description: string;
+  date: string;
+  sourceJournalId?: string;
+  sourceMemoryId?: string;
+  tags?: string[];
+}
+
+export interface TimelineChangeInsight {
+  earlierThemes: string[];
+  recentThemes: string[];
+  shiftSummary: string;
+}
+

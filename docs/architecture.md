@@ -87,7 +87,7 @@ flowchart TD
 
 ## 4. Implementation Status vs Roadmap
 
-### Implemented in Stage 1 & Stage 2 (P0 Foundation & P1 Core Product)
+### Implemented in Stage 1, Stage 2 & Stage 3 (P0 Foundation, P1 Core Product, P2 Differentiation)
 - [x] Next.js 15 App Router + TypeScript + Tailwind CSS
 - [x] Firebase Client Authentication (Google OAuth + Email/Password)
 - [x] Firebase Admin ID Token Verification Middleware (`verifyAuthHeader`)
@@ -96,20 +96,21 @@ flowchart TD
 - [x] Google Cloud Secret Manager integration with caching
 - [x] Multi-stage production Dockerfile for Cloud Run with non-root security
 - [x] Production security headers (CSP, X-Frame-Options, X-Content-Type-Options)
-- [x] Automated Security Test Suite (23 security & unit tests passing)
+- [x] Automated Security Test Suite (47 security & unit tests passing across 12 suites)
 - [x] Multi-turn Gemini conversational journal session (`/api/journal/chat` & `/journal`)
 - [x] Resilient journal saving pipeline with automatic titling (`/api/journal/save`)
 - [x] Automatic journal summarizer & topic extraction (`/api/journal/summarize`)
 - [x] Structured AI memory extraction across 9 categories (`/api/journal/extract-memory`)
 - [x] Categorized Memories Gallery (`/memories`) with category filtering and source linking
 - [x] Zod request & Gemini structured output schema validation
-
-### Planned for Stage 3 (P2 Differentiation)
-- [ ] "Ask My Journal" semantic retrieval with source grounding (`/api/journal/search`)
-- [ ] "Journal Rewind" retrospective engine for 7d, 30d, 90d, all time (`/api/rewind`)
-- [ ] Personal Growth Timeline visualization
+- [x] "Ask My Journal" natural-language query engine (`POST /api/journal/ask` & `/ask`)
+- [x] Strict source reference validation (rejection of any hallucinated source IDs)
+- [x] "Journal Rewind" retrospective synthesis for 7d, 30d, 90d, all-time (`POST /api/journal/rewind` & `/rewind`)
+- [x] Deterministic statistics aggregation (entry count, active days, topic frequency)
+- [x] Personal Growth Timeline with category filtering and shift detection (`GET /api/timeline` & `/timeline`)
 
 ### Planned for Stage 4 (P3 Polish & Features)
 - [ ] Goal memory tracker with explicit user state confirmation
 - [ ] Optional Google Places API (New) & Maps JS personal memory map
 - [ ] Privacy Center UI with UID data audit controls
+

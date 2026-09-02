@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { BookOpen, Sparkles, LogOut, User as UserIcon, Shield, Compass, Target, MapPin } from 'lucide-react';
+import { BookOpen, Sparkles, LogOut, User as UserIcon, Shield, Compass, Search, Clock, TrendingUp } from 'lucide-react';
 
 export function Navbar() {
   const { user, signOut, loading } = useAuth();
@@ -24,9 +24,9 @@ export function Navbar() {
     { href: '/dashboard', label: 'Dashboard', icon: Compass },
     { href: '/journal', label: 'Journal', icon: BookOpen },
     { href: '/memories', label: 'Memories', icon: Sparkles },
-    { href: '/goals', label: 'Goals', icon: Target },
-    { href: '/rewind', label: 'Rewind', icon: Sparkles },
-    { href: '/privacy', label: 'Privacy', icon: Shield },
+    { href: '/ask', label: 'Ask', icon: Search },
+    { href: '/rewind', label: 'Rewind', icon: Clock },
+    { href: '/timeline', label: 'Timeline', icon: TrendingUp },
   ];
 
   return (
