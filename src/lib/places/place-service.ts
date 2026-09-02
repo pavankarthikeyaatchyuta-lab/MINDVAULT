@@ -1,11 +1,11 @@
 import { JournalRepository, MemoryRepository } from '@/lib/firestore/repositories';
-import { MapPlaceNode, MapPlaceMemoryRef, MapPlaceJournalRef } from '@/types';
+import { MapPlaceNode, MapPlaceMemoryRef, MapPlaceJournalRef, LocationPrecision, CoordinateSource } from '@/types';
 
 /**
- * Deterministic coordinate database for well-known tech, travel, and cultural hubs.
- * Avoids unnecessary billable Google Geocoding API calls and keeps operations instantaneous and private.
+ * Genuine coordinate database for major recognized tech, cultural, and travel hubs.
+ * Maps genuine city-level centroids. Does not invent hyper-precise street coordinates.
  */
-const KNOWN_COORDINATES: Record<string, { lat: number; lng: number }> = {
+export const KNOWN_COORDINATES: Record<string, { lat: number; lng: number }> = {
   hyderabad: { lat: 17.385, lng: 78.4867 },
   bengaluru: { lat: 12.9716, lng: 77.5946 },
   bangalore: { lat: 12.9716, lng: 77.5946 },
@@ -32,32 +32,64 @@ const KNOWN_COORDINATES: Record<string, { lat: number; lng: number }> = {
   dubai: { lat: 25.2048, lng: 55.2708 },
 };
 
+export interface ResolvedPlaceCoordinates {
+  latitude: number | null;
+  longitude: number | null;
+  precision: LocationPrecision;
+  coordinateSource: CoordinateSource;
+}
+
 /**
- * Deterministically resolves coordinates for a location string.
- * If not in the known dictionary, derives a stable coordinate hash within global bounds.
+ * Resolves coordinates for a location string with strict provenance.
+ * 
+ * TRUST INVARIANT:
+ * - If user supplied explicit numeric coordinates, marks as 'exact' / 'EXPLICIT_COORDINATES'.
+ * - If location matches a recognized city database entry, marks as 'city' / 'KNOWN_CITY_DATABASE'.
+ * - If location is an unknown or ambiguous name, returns null coordinates ('unresolved' / 'UNRESOLVED').
+ * - NEVER derives synthetic or pseudo-random coordinates.
  */
-export function resolveCoordinates(placeName: string, explicitLat?: number, explicitLng?: number): { lat: number; lng: number } {
-  if (explicitLat !== undefined && explicitLng !== undefined && !isNaN(explicitLat) && !isNaN(explicitLng)) {
-    return { lat: explicitLat, lng: explicitLng };
+export function resolveCoordinates(
+  placeName: string,
+  explicitLat?: number,
+  explicitLng?: number
+): ResolvedPlaceCoordinates {
+  if (
+    explicitLat !== undefined &&
+    explicitLng !== undefined &&
+    !isNaN(explicitLat) &&
+    !isNaN(explicitLng) &&
+    explicitLat >= -90 &&
+    explicitLat <= 90 &&
+    explicitLng >= -180 &&
+    explicitLng <= 180
+  ) {
+    return {
+      latitude: explicitLat,
+      longitude: explicitLng,
+      precision: 'exact',
+      coordinateSource: 'EXPLICIT_COORDINATES',
+    };
   }
 
   const normalized = placeName.trim().toLowerCase();
   for (const [key, coords] of Object.entries(KNOWN_COORDINATES)) {
     if (normalized.includes(key) || key.includes(normalized)) {
-      return coords;
+      return {
+        latitude: coords.lat,
+        longitude: coords.lng,
+        precision: 'city',
+        coordinateSource: 'KNOWN_CITY_DATABASE',
+      };
     }
   }
 
-  // Stable string hash to distribute custom user places realistically across map
-  let hash = 0;
-  for (let i = 0; i < placeName.length; i++) {
-    hash = (hash << 5) - hash + placeName.charCodeAt(i);
-    hash |= 0;
-  }
-
-  const lat = 15 + ((Math.abs(hash) % 4000) / 100); // 15 to 55 deg latitude
-  const lng = 70 + ((Math.abs(hash >> 3) % 6000) / 100); // 70 to 130 deg longitude
-  return { lat, lng };
+  // STRICT INTEGRITY: Zero synthetic coordinates
+  return {
+    latitude: null,
+    longitude: null,
+    precision: 'unresolved',
+    coordinateSource: 'UNRESOLVED',
+  };
 }
 
 /**
@@ -76,8 +108,11 @@ export function getCanonicalPlaceKey(placeName: string): { key: string; displayN
 
 /**
  * Aggregates all user-owned PLACE memories and journal locations.
- * STRICT SECURITY INVARIANT:
+ * 
+ * STRICT SECURITY & PROVENANCE INVARIANT:
  * - Scoped strictly to `authenticatedUid`.
+ * - Preserves provenance and distinction between exact coordinates, city-level hubs,
+ *   and unresolved places.
  */
 export async function getAggregatedPlacesForUser(
   authenticatedUid: string,
@@ -109,8 +144,10 @@ export async function getAggregatedPlacesForUser(
       placeMap.set(key, {
         id: `place_${encodeURIComponent(key)}`,
         name: displayName,
-        latitude: coords.lat,
-        longitude: coords.lng,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        precision: coords.precision,
+        coordinateSource: coords.coordinateSource,
         mentionsCount: 1,
         lastMentioned: memRef.date,
         memories: [memRef],
@@ -122,6 +159,13 @@ export async function getAggregatedPlacesForUser(
       existing.memories.push(memRef);
       if (new Date(memRef.date).getTime() > new Date(existing.lastMentioned).getTime()) {
         existing.lastMentioned = memRef.date;
+      }
+      // Upgrade precision if known
+      if (existing.precision === 'unresolved' && coords.precision !== 'unresolved') {
+        existing.latitude = coords.latitude;
+        existing.longitude = coords.longitude;
+        existing.precision = coords.precision;
+        existing.coordinateSource = coords.coordinateSource;
       }
     }
   }
@@ -143,8 +187,10 @@ export async function getAggregatedPlacesForUser(
         placeMap.set(key, {
           id: `place_${encodeURIComponent(key)}`,
           name: displayName,
-          latitude: coords.lat,
-          longitude: coords.lng,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          precision: coords.precision,
+          coordinateSource: coords.coordinateSource,
           mentionsCount: 1,
           lastMentioned: j.createdAt,
           memories: [],
@@ -158,6 +204,13 @@ export async function getAggregatedPlacesForUser(
         }
         if (new Date(j.createdAt).getTime() > new Date(existing.lastMentioned).getTime()) {
           existing.lastMentioned = j.createdAt;
+        }
+        // Upgrade precision if exact
+        if (coords.precision === 'exact') {
+          existing.latitude = coords.latitude;
+          existing.longitude = coords.longitude;
+          existing.precision = 'exact';
+          existing.coordinateSource = 'EXPLICIT_COORDINATES';
         }
       }
     }

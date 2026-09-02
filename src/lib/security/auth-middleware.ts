@@ -94,7 +94,10 @@ export function createErrorResponse(error: unknown): NextResponse {
     );
   }
 
-  const errMessage = error instanceof Error ? error.message : 'Internal Server Error';
+  let errMessage = error instanceof Error ? error.message : 'Internal Server Error';
+  if (errMessage.includes('/') || errMessage.includes('\\') || errMessage.includes('.json')) {
+    errMessage = 'An internal system error occurred.';
+  }
   
   // Non-sensitive server error response
   return NextResponse.json(

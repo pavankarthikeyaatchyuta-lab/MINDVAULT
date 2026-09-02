@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, createErrorResponse } from '@/lib/security/auth-middleware';
+import { checkRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiter';
 import { RewindRequestSchema, RewindRangeSchema } from '@/lib/validation/schemas';
 import { JournalRepository, MemoryRepository, RewindRepository } from '@/lib/firestore/repositories';
 import { synthesizeRewind } from '@/lib/gemini/journal-service';
@@ -26,6 +27,12 @@ export async function POST(req: NextRequest) {
   try {
     const authContext = await authenticateRequest(req);
     const authenticatedUid = authContext.uid;
+
+    // Rate limit check: 10 rewind calls per minute
+    const rateLimit = checkRateLimit(`rewind_${authenticatedUid}`, 10, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetAt);
+    }
 
     const rawBody = await req.json();
     const parseResult = RewindRequestSchema.safeParse(rawBody);

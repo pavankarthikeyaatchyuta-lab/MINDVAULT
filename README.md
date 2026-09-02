@@ -93,51 +93,63 @@ flowchart TD
     S1["[x] Stage 1: P0 Foundation (COMPLETE & AUDITED)\n- Auth, Token Verification & UID Derivation\n- UID-Scoped Repositories & Security Rules\n- Secret Manager Integration & Cloud Run Dockerfile\n- Automated Security Test Suite & Health Check"]
     S2["[x] Stage 2: P1 Core Product (COMPLETE & VERIFIED)\n- Multi-turn Gemini Conversational Journal\n- Automatic Summarization Engine\n- Structured AI Memory Extraction (9 Categories)\n- Categorized Memories Gallery with Source Links"]
     S3["[x] Stage 3: P2 Differentiation (COMPLETE & VERIFIED)\n- Ask My Journal Retrieval with Source Grounding\n- Strict Hallucination Source Validation\n- Journal Rewind Retrospective (7d/30d/90d/all)\n- Personal Growth Timeline & Shift Insights"]
-    S4["[x] Stage 4: P3 Final Differentiation & Polish (COMPLETE & VERIFIED)\n- Personal Memory Map with Coordinates\n- MindVault Insights & Grounded Analytics\n- Multi-Signal Hybrid Retrieval with Temporal Intent\n- 59 Automated Tests & Complete UI Navigation"]
+    S4["[x] Stage 4: P3 Differentiation (COMPLETE & VERIFIED)\n- Personal Memory Map & Grounded Analytics\n- Multi-Signal Hybrid Retrieval with Temporal Intent\n- Comprehensive 7-Pillar Navigation Grid"]
+    S5["[x] Stage 5: Final Trust Audit & Production Hardening (COMPLETE)\n- Zero Synthetic Coordinates & Real Location Semantics\n- Per-User In-Memory Rate Limiting (Cloud Run Safe)\n- Strict Source Rejection & Error Sanitization\n- 70 Automated Tests Across 16 Test Suites"]
 
-    S1 --> S2 --> S3 --> S4
+    S1 --> S2 --> S3 --> S4 --> S5
 ```
 
 ---
 
-## 5. Local Setup & Environment
+## 5. Live Hackathon Demonstration Walkthrough
 
-### Prerequisites
-- Node.js 20+ (Node 22 / 24 recommended)
-- npm 10+
-- Google Cloud SDK (`gcloud`)
+Follow this narrative flow to demonstrate MindVault's capabilities live in 3 minutes:
 
-### Step 1: Clone and Install Dependencies
-```bash
-git clone https://github.com/pavankarthikeyaatchyuta-lab/MINDVAULT.git
-cd MINDVAULT
-npm install
-```
-
-### Step 2: Configure Environment Variables
-Copy `.env.example` to `.env.local` and add your Firebase and Gemini credentials:
-```bash
-cp .env.example .env.local
-```
-
-### Step 3: Run Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+1. **Sign In**: Authenticate via Google OAuth or Email/Password on `/login`.
+2. **Reflective Journaling (`/journal`)**:
+   - Write an entry about today's goals, decisions, or travel.
+   - Interact with Gemini's empathetic thinking companion.
+   - Click "Save Entry" — the entry is persisted, titled, summarized, and categorized.
+3. **Explore Memories (`/memories`)**:
+   - View extracted structured memory cards across 9 categories.
+   - Filter by category (e.g. `GOAL`, `DECISION`, `PLACE`).
+   - Click "View source" to jump directly to the originating journal.
+4. **Ask My Journal (`/ask`)**:
+   - Ask: *"What have I been focusing on recently?"* or *"What goals did I set?"*
+   - Watch the multi-signal hybrid retrieval assemble grounded evidence.
+   - Review the synthesized answer with high confidence and verified citation cards.
+5. **Journal Rewind (`/rewind`)**:
+   - Choose a time window (7d, 30d, 90d, All-Time).
+   - Review deterministic backend metrics (entry count, active days, top topics) and qualitative reflections.
+6. **Growth Timeline (`/timeline`)**:
+   - Scroll through the chronological stream of reflections and memories.
+   - Inspect the "What Changed?" pattern shift insight.
+7. **Personal Memory Map (`/map`)**:
+   - View genuine geographic pins with city-level or exact provenance.
+   - Inspect unresolved/offline places cleanly separated without fabricated coordinates.
+8. **MindVault Insights (`/insights`)**:
+   - View emerging interest tracking (earlier vs recent mentions), goal momentum, and social footprint.
 
 ---
 
-## 6. Automated Testing & Verification
+## 6. Trust, Security & AI Grounding Principles
 
-MindVault includes an automated test suite:
+1. **Zero Synthetic Coordinates**: Arbitrary places are never given pseudo-random or hashed coordinates. Locations are strictly categorized as `exact`, `city`, or `unresolved`.
+2. **Client-Side UID Disregard**: All authorization is derived exclusively on the server from `decodedToken.uid` via Firebase Admin SDK. Client-supplied UIDs are rejected.
+3. **Model Hallucination Defense**: Every citation returned by Gemini is cross-checked against retrieved user documents. Any hallucinated ID is immediately dropped.
+4. **Untrusted Data Isolation**: User inputs are encapsulated in strict XML boundaries with explicit system instructions to ignore prompt injections.
+5. **In-Memory Rate Limiting**: AI endpoints enforce sliding-window request throttling per user to protect Cloud Run from quota exhaustion.
+6. **Zero Secret Leakage**: API keys and service credentials never appear in client bundles, log files, or sanitized error responses.
+
+---
+
+## 7. Automated Testing & Verification
+
+MindVault includes 70 automated tests across 16 test suites:
 
 ```bash
 # Run all tests
 npm test
-
-# Run security test suite specifically
-npm run test:security
 
 # Type checking
 npm run typecheck
@@ -151,7 +163,7 @@ npm run build
 
 ---
 
-## 7. Cloud Run Deployment
+## 8. Cloud Run Deployment
 
 ```bash
 # 1. Build container image with Google Cloud Build

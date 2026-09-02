@@ -10,7 +10,6 @@ import {
   Search,
   ExternalLink,
   BookOpen,
-  Calendar,
   Compass,
   Loader2,
   AlertCircle,
@@ -19,14 +18,14 @@ import {
   RotateCcw,
   Navigation,
   Globe,
+  MapPinOff,
+  ShieldCheck,
 } from 'lucide-react';
 import { MapPlaceNode } from '@/types';
 
 // Mercator-like projection utility to convert lat/lng to SVG percentage coordinates (0 - 100)
 function projectCoords(lat: number, lng: number): { x: number; y: number } {
-  // Normalize longitude (-180 to 180) to (0 to 100)
   const x = ((lng + 180) / 360) * 100;
-  // Normalize latitude (-85 to 85) with Mercator projection
   const clampedLat = Math.max(-85, Math.min(85, lat));
   const rad = (clampedLat * Math.PI) / 180;
   const merc = Math.log(Math.tan(Math.PI / 4 + rad / 2));
@@ -69,9 +68,12 @@ export default function MapPage() {
         throw new Error(json.error?.message || 'Failed to fetch memory places');
       }
 
-      setPlaces(json.data.places || []);
-      if (json.data.places && json.data.places.length > 0) {
-        setSelectedPlace(json.data.places[0]);
+      const placeList: MapPlaceNode[] = json.data.places || [];
+      setPlaces(placeList);
+      if (placeList.length > 0) {
+        // Select first mapped place or first overall
+        const firstMapped = placeList.find((p) => p.latitude !== null && p.longitude !== null);
+        setSelectedPlace(firstMapped || placeList[0]);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Could not load memory map.');
@@ -92,6 +94,14 @@ export default function MapPage() {
     return places.filter((p) => p.name.toLowerCase().includes(q));
   }, [places, searchQuery]);
 
+  const mappedPlaces = useMemo(() => {
+    return filteredPlaces.filter((p) => p.latitude !== null && p.longitude !== null);
+  }, [filteredPlaces]);
+
+  const unresolvedPlaces = useMemo(() => {
+    return filteredPlaces.filter((p) => p.latitude === null || p.longitude === null);
+  }, [filteredPlaces]);
+
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
@@ -108,13 +118,13 @@ export default function MapPage() {
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-semibold mb-2">
             <Compass className="w-3.5 h-3.5" />
-            <span>Geographic Memory System</span>
+            <span>Verified Geographic Memory System</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Personal Memory Map
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Visual representation of places, cities, and travel moments remembered in your private journal.
+            Grounded geographic representation of places remembered in your journal with zero fabricated coordinates.
           </p>
         </div>
 
@@ -143,7 +153,7 @@ export default function MapPage() {
       {isLoading ? (
         <div className="h-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center space-y-3 animate-pulse">
           <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-          <p className="text-xs text-slate-500">Rendering geographic memory nodes...</p>
+          <p className="text-xs text-slate-500">Loading verified geographic nodes...</p>
         </div>
       ) : places.length === 0 ? (
         /* Empty State */
@@ -153,7 +163,7 @@ export default function MapPage() {
           </div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">No places recorded yet</h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Whenever you mention cities, cafes, or locations in your journal entries, MindVault will automatically extract and pin them here.
+            Mention cities or places in your journal entries to have MindVault automatically extract and ground them here.
           </p>
           <Link
             href="/journal"
@@ -181,7 +191,7 @@ export default function MapPage() {
               }}
             />
 
-            {/* Stylized Geographic Map Outline (SVG World/Subcontinents) */}
+            {/* Stylized World Outline */}
             <svg
               className="absolute inset-0 w-full h-full text-slate-800 pointer-events-none opacity-40 transition-transform duration-300"
               viewBox="0 0 100 60"
@@ -198,7 +208,7 @@ export default function MapPage() {
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-800/80 backdrop-blur-md border border-slate-700 text-slate-300 text-xs">
                 <Globe className="w-3.5 h-3.5 text-teal-400" />
-                <span>{filteredPlaces.length} Memory Locations Pinned</span>
+                <span>{mappedPlaces.length} Mapped Pins ({unresolvedPlaces.length} Unresolved)</span>
               </div>
 
               {/* Zoom Controls */}
@@ -227,14 +237,14 @@ export default function MapPage() {
               </div>
             </div>
 
-            {/* Interactive Place Markers */}
+            {/* Interactive Place Markers (ONLY Mapped Places) */}
             <div
               className="absolute inset-0 transition-transform duration-300 pointer-events-none"
               style={{ transform: `scale(${zoomLevel})` }}
             >
-              {filteredPlaces.map((place) => {
+              {mappedPlaces.map((place) => {
                 const isSelected = selectedPlace?.id === place.id;
-                const pos = projectCoords(place.latitude, place.longitude);
+                const pos = projectCoords(place.latitude!, place.longitude!);
 
                 return (
                   <button
@@ -243,14 +253,11 @@ export default function MapPage() {
                     style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto group focus:outline-none"
                   >
-                    {/* Glowing pulse aura */}
                     <div
                       className={`absolute -inset-2 rounded-full opacity-60 animate-ping pointer-events-none ${
                         isSelected ? 'bg-teal-400' : 'bg-teal-500/40'
                       }`}
                     />
-
-                    {/* Marker icon badge */}
                     <div
                       className={`relative flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-lg transition-transform ${
                         isSelected
@@ -274,37 +281,59 @@ export default function MapPage() {
             {/* Bottom Status Bar */}
             <div className="relative z-10 flex items-center justify-between text-[11px] text-slate-400 bg-slate-850/80 backdrop-blur-md p-2.5 rounded-xl border border-slate-800">
               <span className="flex items-center space-x-1.5">
-                <Navigation className="w-3 h-3 text-teal-400" />
-                <span>Click any marker to explore memories recorded at that location</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                <span>Zero synthetic coordinates. Unresolved locations are clearly separated.</span>
               </span>
-              <span className="hidden sm:inline">Coordinates safely derived without exposing browser API keys</span>
+              <span className="hidden sm:inline">Provenance verified</span>
             </div>
 
           </div>
 
           {/* Place Details Drawer / Sidebar */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-[480px] sm:h-[540px] overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-[480px] sm:h-[540px] overflow-y-auto space-y-5">
             {selectedPlace ? (
               <div className="space-y-5">
                 
                 {/* Place Title & Meta */}
                 <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wider">
-                      Location Details
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                        selectedPlace.precision === 'exact'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                          : selectedPlace.precision === 'city'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                      }`}
+                    >
+                      {selectedPlace.precision === 'exact'
+                        ? 'Exact Location'
+                        : selectedPlace.precision === 'city'
+                        ? 'City-Level Centroid'
+                        : 'Unresolved Location'}
                     </span>
-                    <span className="text-[11px] text-slate-400">
-                      {selectedPlace.latitude.toFixed(2)}°N, {selectedPlace.longitude.toFixed(2)}°E
-                    </span>
+                    {selectedPlace.latitude !== null && selectedPlace.longitude !== null ? (
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {selectedPlace.latitude.toFixed(2)}°N, {selectedPlace.longitude.toFixed(2)}°E
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-amber-600 dark:text-amber-400">No geo coordinates</span>
+                    )}
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-2">
                     {selectedPlace.name}
                   </h2>
-                  <div className="flex items-center space-x-4 text-xs text-slate-500 mt-2">
+                  <div className="flex items-center space-x-3 text-xs text-slate-500 mt-1">
                     <span>{selectedPlace.mentionsCount} mention{selectedPlace.mentionsCount > 1 ? 's' : ''}</span>
                     <span>•</span>
                     <span>Last mentioned: {new Date(selectedPlace.lastMentioned).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
+
+                  {selectedPlace.precision === 'unresolved' && (
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-2 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/60">
+                      Mentioned in writing without verified geographic coordinates. Kept in your personal index without synthetic mapping.
+                    </p>
+                  )}
                 </div>
 
                 {/* Associated Memories List */}
@@ -339,7 +368,7 @@ export default function MapPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400">No explicit memory cards attached yet.</p>
+                    <p className="text-xs text-slate-400">No memory cards attached.</p>
                   )}
                 </div>
 
@@ -369,9 +398,35 @@ export default function MapPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-2 text-slate-400">
                 <MapPin className="w-8 h-8 opacity-40" />
-                <p className="text-xs">Select a place marker from the map to view memories.</p>
+                <p className="text-xs">Select a place marker from the map or list below.</p>
               </div>
             )}
+
+            {/* Unresolved Places Quick Access */}
+            {unresolvedPlaces.length > 0 && (
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center space-x-1.5 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                  <MapPinOff className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Unresolved Places ({unresolvedPlaces.length})</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                  {unresolvedPlaces.map((up) => (
+                    <button
+                      key={up.id}
+                      onClick={() => setSelectedPlace(up)}
+                      className={`px-2.5 py-1 rounded-lg text-xs transition-colors border ${
+                        selectedPlace?.id === up.id
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700 font-semibold'
+                          : 'bg-slate-50 dark:bg-slate-850 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-750 hover:border-slate-300'
+                      }`}
+                    >
+                      {up.name} ({up.mentionsCount})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
 
         </div>

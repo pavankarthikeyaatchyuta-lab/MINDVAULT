@@ -169,11 +169,16 @@ export interface MapPlaceJournalRef {
   date: string;
 }
 
+export type LocationPrecision = 'exact' | 'city' | 'unresolved';
+export type CoordinateSource = 'EXPLICIT_COORDINATES' | 'KNOWN_CITY_DATABASE' | 'UNRESOLVED';
+
 export interface MapPlaceNode {
   id: string;
   name: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
+  precision: LocationPrecision;
+  coordinateSource: CoordinateSource;
   mentionsCount: number;
   lastMentioned: string;
   memories: MapPlaceMemoryRef[];

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, createErrorResponse } from '@/lib/security/auth-middleware';
+import { checkRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiter';
 import { ChatRequestSchema } from '@/lib/validation/schemas';
 import { generateReflectiveResponse } from '@/lib/gemini/journal-service';
 import { JournalMessage } from '@/types';
@@ -11,6 +12,12 @@ export async function POST(req: NextRequest) {
     // 1. Enforce strict server-side Firebase ID token verification
     const authContext = await authenticateRequest(req);
     const authenticatedUid = authContext.uid;
+
+    // Rate limit check: 20 chat turns per minute
+    const rateLimit = checkRateLimit(`chat_${authenticatedUid}`, 20, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetAt);
+    }
 
     // 2. Validate request body against schema
     const rawBody = await req.json();

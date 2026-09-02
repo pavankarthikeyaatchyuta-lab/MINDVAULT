@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, createErrorResponse } from '@/lib/security/auth-middleware';
+import { checkRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiter';
 import { AskJournalRequestSchema } from '@/lib/validation/schemas';
 import { retrieveEvidenceForQuestion } from '@/lib/retrieval/evidence-service';
 import { askMyJournal } from '@/lib/gemini/journal-service';
@@ -11,6 +12,12 @@ export async function POST(req: NextRequest) {
     // 1. Authenticate caller and obtain authoritative UID
     const authContext = await authenticateRequest(req);
     const authenticatedUid = authContext.uid;
+
+    // Rate limit check: 15 queries per minute
+    const rateLimit = checkRateLimit(`ask_${authenticatedUid}`, 15, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetAt);
+    }
 
     // 2. Validate input schema
     const rawBody = await req.json();

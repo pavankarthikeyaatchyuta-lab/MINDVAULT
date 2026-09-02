@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, createErrorResponse } from '@/lib/security/auth-middleware';
+import { checkRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiter';
 import { JournalRepository, MemoryRepository } from '@/lib/firestore/repositories';
 import { synthesizeInsights } from '@/lib/gemini/journal-service';
 
@@ -9,6 +10,12 @@ export async function GET(req: NextRequest) {
   try {
     const authContext = await authenticateRequest(req);
     const authenticatedUid = authContext.uid;
+
+    // Rate limit check: 10 insights generations per minute
+    const rateLimit = checkRateLimit(`insights_${authenticatedUid}`, 10, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetAt);
+    }
 
     // 1. Fetch user data strictly scoped to authenticated UID
     const [journals, memories] = await Promise.all([
