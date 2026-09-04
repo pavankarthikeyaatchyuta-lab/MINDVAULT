@@ -14,6 +14,16 @@ export default function LoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
 
+  const formatAuthError = (err: any, defaultMsg: string): string => {
+    if (err?.code === 'auth/invalid-api-key' || err?.message?.includes('invalid-api-key')) {
+      return 'Firebase API Key is missing or invalid. Please configure your real Firebase Web API credentials in .env.local (from Firebase Console > Project Settings).';
+    }
+    if (err?.code === 'auth/user-not-found' || err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential') {
+      return 'Invalid email or password. Please verify your credentials or create an account.';
+    }
+    return err?.message || defaultMsg;
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
@@ -21,7 +31,7 @@ export default function LoginPage() {
       await signInWithGoogle();
       router.push('/dashboard');
     } catch (err: any) {
-      setFormError(err.message || 'Google sign-in failed.');
+      setFormError(formatAuthError(err, 'Google sign-in failed.'));
     } finally {
       setLoading(false);
     }
@@ -40,7 +50,7 @@ export default function LoginPage() {
       await signInWithEmail(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setFormError(err.message || 'Failed to sign in.');
+      setFormError(formatAuthError(err, 'Failed to sign in.'));
     } finally {
       setLoading(false);
     }

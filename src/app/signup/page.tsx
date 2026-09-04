@@ -15,6 +15,16 @@ export default function SignUpPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
 
+  const formatAuthError = (err: any, defaultMsg: string): string => {
+    if (err?.code === 'auth/invalid-api-key' || err?.message?.includes('invalid-api-key')) {
+      return 'Firebase API Key is missing or invalid. Please configure your real Firebase Web API credentials in .env.local (from Firebase Console > Project Settings).';
+    }
+    if (err?.code === 'auth/email-already-in-use') {
+      return 'An account already exists with this email address. Please sign in instead.';
+    }
+    return err?.message || defaultMsg;
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
@@ -22,7 +32,7 @@ export default function SignUpPage() {
       await signInWithGoogle();
       router.push('/dashboard');
     } catch (err: any) {
-      setFormError(err.message || 'Google sign-in failed.');
+      setFormError(formatAuthError(err, 'Google sign-in failed.'));
     } finally {
       setLoading(false);
     }
@@ -49,7 +59,7 @@ export default function SignUpPage() {
       await signUpWithEmail(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setFormError(err.message || 'Failed to create account.');
+      setFormError(formatAuthError(err, 'Failed to create account.'));
     } finally {
       setLoading(false);
     }
