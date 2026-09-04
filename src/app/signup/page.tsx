@@ -92,6 +92,7 @@ export default function SignUpPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
+          suppressHydrationWarning
           className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors disabled:opacity-60"
         >
           {loading ? (
@@ -126,7 +127,7 @@ export default function SignUpPage() {
           </span>
         </div>
 
-        <form onSubmit={handleSignUp} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4" suppressHydrationWarning>
           <div>
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               Email Address
@@ -136,6 +137,7 @@ export default function SignUpPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              suppressHydrationWarning
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="you@example.com"
             />
@@ -150,6 +152,7 @@ export default function SignUpPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              suppressHydrationWarning
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="••••••••"
             />
@@ -164,6 +167,7 @@ export default function SignUpPage() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              suppressHydrationWarning
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="••••••••"
             />
@@ -172,6 +176,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
+            suppressHydrationWarning
             className="w-full py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium shadow-sm shadow-teal-600/20 transition-all disabled:opacity-60 flex items-center justify-center space-x-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
