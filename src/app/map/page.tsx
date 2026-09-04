@@ -10,13 +10,11 @@ import {
   Search,
   ExternalLink,
   BookOpen,
-  Compass,
   Loader2,
   AlertCircle,
   Plus,
   Minus,
   RotateCcw,
-  Navigation,
   Globe,
   MapPinOff,
   ShieldCheck,
@@ -105,45 +103,47 @@ export default function MapPage() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Opening your personal memory map...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>
+          Opening your personal memory map...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 py-4">
+    <div className="max-w-7xl mx-auto space-y-6 py-4 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-semibold mb-2">
-            <Compass className="w-3.5 h-3.5" />
-            <span>Verified Geographic Memory System</span>
+          <div className="mv-badge mb-2">
+            <Globe className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+            <span>Geographic Memory System</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: 'var(--mv-text)' }}>
             Personal Memory Map
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--mv-text-muted)' }}>
             Grounded geographic representation of places remembered in your journal with zero fabricated coordinates.
           </p>
         </div>
 
         {/* Search Input */}
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-indigo-400/70 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search saved places..."
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+            className="mv-input pl-9 text-xs"
           />
         </div>
       </div>
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center space-x-2">
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 flex items-center space-x-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -151,23 +151,27 @@ export default function MapPage() {
 
       {/* Loading Skeleton */}
       {isLoading ? (
-        <div className="h-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center space-y-3 animate-pulse">
-          <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-          <p className="text-xs text-slate-500">Loading verified geographic nodes...</p>
+        <div className="h-96 mv-card flex flex-col items-center justify-center space-y-3 animate-pulse">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+            Loading verified geographic nodes...
+          </p>
         </div>
       ) : places.length === 0 ? (
         /* Empty State */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto">
+        <div className="mv-card p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 mx-auto">
             <MapPin className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">No places recorded yet</h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h3 className="text-lg font-bold" style={{ color: 'var(--mv-text)' }}>
+            No places recorded yet
+          </h3>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
             Mention cities or places in your journal entries to have MindVault automatically extract and ground them here.
           </p>
           <Link
             href="/journal"
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+            className="mv-btn-primary inline-flex items-center space-x-2 text-xs"
           >
             <span>Write an Entry</span>
           </Link>
@@ -175,16 +179,14 @@ export default function MapPage() {
       ) : (
         /* Populated Map + Sidebar Grid */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
           {/* Main Visual Map Canvas */}
-          <div className="lg:col-span-2 relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm h-[480px] sm:h-[540px] flex flex-col justify-between p-4">
-            
+          <div className="lg:col-span-2 relative bg-[#131022] border border-indigo-500/20 rounded-2xl overflow-hidden shadow-lg h-[480px] sm:h-[540px] flex flex-col justify-between p-4">
             {/* Map Canvas Background Grid */}
             <div
-              className="absolute inset-0 opacity-20 pointer-events-none transition-transform duration-300"
+              className="absolute inset-0 opacity-30 pointer-events-none transition-transform duration-300"
               style={{
                 backgroundImage:
-                  'radial-gradient(circle, #2dd4bf 1px, transparent 1px), radial-gradient(circle, #38bdf8 1px, transparent 1px)',
+                  'radial-gradient(circle, rgba(165, 180, 252, 0.25) 1px, transparent 1px), radial-gradient(circle, rgba(196, 181, 253, 0.15) 1px, transparent 1px)',
                 backgroundSize: '32px 32px',
                 backgroundPosition: '0 0, 16px 16px',
                 transform: `scale(${zoomLevel})`,
@@ -193,7 +195,7 @@ export default function MapPage() {
 
             {/* Stylized World Outline */}
             <svg
-              className="absolute inset-0 w-full h-full text-slate-800 pointer-events-none opacity-40 transition-transform duration-300"
+              className="absolute inset-0 w-full h-full text-indigo-950/60 dark:text-indigo-900/30 pointer-events-none opacity-40 transition-transform duration-300"
               viewBox="0 0 100 60"
               preserveAspectRatio="none"
               style={{ transform: `scale(${zoomLevel})` }}
@@ -206,30 +208,32 @@ export default function MapPage() {
 
             {/* Top Overlay Controls */}
             <div className="relative z-10 flex items-center justify-between">
-              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-800/80 backdrop-blur-md border border-slate-700 text-slate-300 text-xs">
-                <Globe className="w-3.5 h-3.5 text-teal-400" />
-                <span>{mappedPlaces.length} Mapped Pins ({unresolvedPlaces.length} Unresolved)</span>
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-indigo-500/20 text-indigo-200 text-xs">
+                <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                <span>
+                  {mappedPlaces.length} Mapped Pins ({unresolvedPlaces.length} Unresolved)
+                </span>
               </div>
 
               {/* Zoom Controls */}
-              <div className="flex items-center space-x-1 p-1 rounded-xl bg-slate-800/80 backdrop-blur-md border border-slate-700 text-slate-300">
+              <div className="flex items-center space-x-1 p-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-indigo-500/20 text-slate-300">
                 <button
                   onClick={() => setZoomLevel((z) => Math.min(2, z + 0.25))}
-                  className="p-1.5 hover:text-teal-400 transition-colors"
+                  className="p-1.5 rounded-lg hover:text-indigo-300 hover:bg-indigo-500/20 transition-all"
                   title="Zoom in"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setZoomLevel((z) => Math.max(0.75, z - 0.25))}
-                  className="p-1.5 hover:text-teal-400 transition-colors"
+                  className="p-1.5 rounded-lg hover:text-indigo-300 hover:bg-indigo-500/20 transition-all"
                   title="Zoom out"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setZoomLevel(1)}
-                  className="p-1.5 hover:text-teal-400 transition-colors"
+                  className="p-1.5 rounded-lg hover:text-indigo-300 hover:bg-indigo-500/20 transition-all"
                   title="Reset view"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -255,20 +259,20 @@ export default function MapPage() {
                   >
                     <div
                       className={`absolute -inset-2 rounded-full opacity-60 animate-ping pointer-events-none ${
-                        isSelected ? 'bg-teal-400' : 'bg-teal-500/40'
+                        isSelected ? 'bg-indigo-400' : 'bg-violet-500/40'
                       }`}
                     />
                     <div
                       className={`relative flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-lg transition-transform ${
                         isSelected
-                          ? 'bg-teal-500 text-white scale-110 ring-2 ring-teal-300 ring-offset-2 ring-offset-slate-900 z-30'
-                          : 'bg-slate-800/90 text-teal-300 hover:bg-slate-700 border border-teal-500/40 hover:scale-105 z-20'
+                          ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white scale-110 ring-2 ring-indigo-300 ring-offset-2 ring-offset-slate-900 z-30 shadow-glow-indigo'
+                          : 'bg-slate-900/90 text-violet-200 hover:bg-slate-800 border border-violet-500/40 hover:scale-105 z-20'
                       }`}
                     >
-                      <MapPin className="w-3 h-3 text-teal-300 shrink-0" />
+                      <MapPin className={`w-3 h-3 shrink-0 ${isSelected ? 'text-white' : 'text-violet-400'}`} />
                       <span>{place.name}</span>
                       {place.mentionsCount > 1 && (
-                        <span className="ml-1 px-1.5 py-0.2 rounded-full bg-teal-900/80 text-[10px] text-teal-200">
+                        <span className="ml-1 px-1.5 py-0.2 rounded-full bg-indigo-950/80 text-[10px] text-indigo-200 border border-indigo-500/30">
                           {place.mentionsCount}
                         </span>
                       )}
@@ -279,31 +283,29 @@ export default function MapPage() {
             </div>
 
             {/* Bottom Status Bar */}
-            <div className="relative z-10 flex items-center justify-between text-[11px] text-slate-400 bg-slate-850/80 backdrop-blur-md p-2.5 rounded-xl border border-slate-800">
+            <div className="relative z-10 flex items-center justify-between text-[11px] text-slate-400 bg-slate-900/80 backdrop-blur-md p-2.5 rounded-xl border border-indigo-500/20">
               <span className="flex items-center space-x-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Zero synthetic coordinates. Unresolved locations are clearly separated.</span>
               </span>
-              <span className="hidden sm:inline">Provenance verified</span>
+              <span className="hidden sm:inline text-indigo-400/80 font-medium">Provenance verified</span>
             </div>
-
           </div>
 
           {/* Place Details Drawer / Sidebar */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-[480px] sm:h-[540px] overflow-y-auto space-y-5">
+          <div className="mv-card p-6 flex flex-col justify-between h-[480px] sm:h-[540px] overflow-y-auto space-y-5">
             {selectedPlace ? (
               <div className="space-y-5">
-                
                 {/* Place Title & Meta */}
-                <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="pb-4 border-b" style={{ borderColor: 'var(--mv-border)' }}>
                   <div className="flex items-center justify-between">
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                         selectedPlace.precision === 'exact'
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
                           : selectedPlace.precision === 'city'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25'
+                          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25'
                       }`}
                     >
                       {selectedPlace.precision === 'exact'
@@ -313,24 +315,33 @@ export default function MapPage() {
                         : 'Unresolved Location'}
                     </span>
                     {selectedPlace.latitude !== null && selectedPlace.longitude !== null ? (
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-[11px] font-mono" style={{ color: 'var(--mv-text-muted)' }}>
                         {selectedPlace.latitude.toFixed(2)}°N, {selectedPlace.longitude.toFixed(2)}°E
                       </span>
                     ) : (
-                      <span className="text-[11px] text-amber-600 dark:text-amber-400">No geo coordinates</span>
+                      <span className="text-[11px] text-amber-500 font-medium">No geo coordinates</span>
                     )}
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-2">
+                  <h2 className="text-xl font-bold mt-2" style={{ color: 'var(--mv-text)' }}>
                     {selectedPlace.name}
                   </h2>
-                  <div className="flex items-center space-x-3 text-xs text-slate-500 mt-1">
-                    <span>{selectedPlace.mentionsCount} mention{selectedPlace.mentionsCount > 1 ? 's' : ''}</span>
+                  <div className="flex items-center space-x-3 text-xs mt-1" style={{ color: 'var(--mv-text-muted)' }}>
+                    <span>
+                      {selectedPlace.mentionsCount} mention{selectedPlace.mentionsCount > 1 ? 's' : ''}
+                    </span>
                     <span>•</span>
-                    <span>Last mentioned: {new Date(selectedPlace.lastMentioned).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span>
+                      Last mentioned:{' '}
+                      {new Date(selectedPlace.lastMentioned).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </div>
 
                   {selectedPlace.precision === 'unresolved' && (
-                    <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-2 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/60">
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-2 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 leading-relaxed">
                       Mentioned in writing without verified geographic coordinates. Kept in your personal index without synthetic mapping.
                     </p>
                   )}
@@ -338,8 +349,11 @@ export default function MapPage() {
 
                 {/* Associated Memories List */}
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-teal-500" />
+                  <h3
+                    className="text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5"
+                    style={{ color: 'var(--mv-text-muted)' }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-violet-500" />
                     <span>Associated Memories ({selectedPlace.memories.length})</span>
                   </h3>
 
@@ -348,17 +362,28 @@ export default function MapPage() {
                       {selectedPlace.memories.map((m) => (
                         <div
                           key={m.id}
-                          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 space-y-1"
+                          className="p-3 rounded-xl border space-y-1 transition-all"
+                          style={{
+                            background: 'rgba(99, 102, 241, 0.04)',
+                            borderColor: 'var(--mv-border)',
+                          }}
                         >
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-white">{m.title}</h4>
-                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                          <h4 className="text-xs font-bold" style={{ color: 'var(--mv-text)' }}>
+                            {m.title}
+                          </h4>
+                          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
                             {m.description}
                           </p>
-                          <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400">
-                            <span>{new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <div
+                            className="pt-1 flex items-center justify-between text-[10px]"
+                            style={{ color: 'var(--mv-text-muted)' }}
+                          >
+                            <span>
+                              {new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
                             <Link
                               href={`/journal?id=${m.sourceJournalId}`}
-                              className="text-teal-600 dark:text-teal-400 hover:underline flex items-center space-x-1 font-medium"
+                              className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1 font-medium"
                             >
                               <span>View journal</span>
                               <ExternalLink className="w-3 h-3" />
@@ -368,15 +393,20 @@ export default function MapPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400">No memory cards attached.</p>
+                    <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                      No memory cards attached.
+                    </p>
                   )}
                 </div>
 
                 {/* Associated Journals List */}
                 {selectedPlace.journals.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                      <BookOpen className="w-3.5 h-3.5 text-teal-500" />
+                  <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--mv-border)' }}>
+                    <h3
+                      className="text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5"
+                      style={{ color: 'var(--mv-text-muted)' }}
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
                       <span>Tagged Journals ({selectedPlace.journals.length})</span>
                     </h3>
                     <div className="space-y-1.5">
@@ -384,29 +414,46 @@ export default function MapPage() {
                         <Link
                           key={j.id}
                           href={`/journal?id=${j.id}`}
-                          className="block p-2.5 rounded-lg bg-slate-50 dark:bg-slate-850 hover:border-teal-400 border border-slate-200 dark:border-slate-750 transition-colors"
+                          className="block p-2.5 rounded-xl border transition-colors hover:border-indigo-400/50"
+                          style={{
+                            background: 'rgba(99, 102, 241, 0.04)',
+                            borderColor: 'var(--mv-border)',
+                          }}
                         >
-                          <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{j.title}</span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">{new Date(j.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span className="text-xs font-medium" style={{ color: 'var(--mv-text)' }}>
+                            {j.title}
+                          </span>
+                          <span className="text-[10px] block mt-0.5" style={{ color: 'var(--mv-text-muted)' }}>
+                            {new Date(j.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </span>
                         </Link>
                       ))}
                     </div>
                   </div>
                 )}
-
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-2 text-slate-400">
-                <MapPin className="w-8 h-8 opacity-40" />
+              <div
+                className="flex flex-col items-center justify-center h-full text-center space-y-2"
+                style={{ color: 'var(--mv-text-muted)' }}
+              >
+                <MapPin className="w-8 h-8 opacity-40 text-indigo-400" />
                 <p className="text-xs">Select a place marker from the map or list below.</p>
               </div>
             )}
 
             {/* Unresolved Places Quick Access */}
             {unresolvedPlaces.length > 0 && (
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <div className="flex items-center space-x-1.5 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                  <MapPinOff className="w-3.5 h-3.5 text-amber-500" />
+              <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--mv-border)' }}>
+                <div
+                  className="flex items-center space-x-1.5 text-[11px] font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--mv-text-muted)' }}
+                >
+                  <MapPinOff className="w-3.5 h-3.5 text-violet-500" />
                   <span>Unresolved Places ({unresolvedPlaces.length})</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
@@ -414,11 +461,20 @@ export default function MapPage() {
                     <button
                       key={up.id}
                       onClick={() => setSelectedPlace(up)}
-                      className={`px-2.5 py-1 rounded-lg text-xs transition-colors border ${
+                      className={`px-2.5 py-1 rounded-lg text-xs transition-all border ${
                         selectedPlace?.id === up.id
-                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700 font-semibold'
-                          : 'bg-slate-50 dark:bg-slate-850 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-750 hover:border-slate-300'
+                          ? 'bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-500/40 font-semibold shadow-sm'
+                          : 'hover:border-violet-400/40'
                       }`}
+                      style={
+                        selectedPlace?.id !== up.id
+                          ? {
+                              background: 'rgba(99, 102, 241, 0.05)',
+                              borderColor: 'var(--mv-border)',
+                              color: 'var(--mv-text-muted)',
+                            }
+                          : undefined
+                      }
                     >
                       {up.name} ({up.mentionsCount})
                     </button>
@@ -426,12 +482,9 @@ export default function MapPage() {
                 </div>
               </div>
             )}
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

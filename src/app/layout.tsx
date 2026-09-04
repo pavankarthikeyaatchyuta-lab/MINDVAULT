@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { Navbar } from '@/components/Navbar';
+import { LayoutShell } from '@/components/LayoutShell';
 
 export const metadata: Metadata = {
   title: 'MindVault — Your Journal That Remembers',
@@ -15,24 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col antialiased" style={{ background: 'var(--mv-bg)', color: 'var(--mv-text)' }}>
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </main>
-          <footer className="border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p>MindVault • Google Cloud Gen AI Academy Cohort 3 Ideathon</p>
-              <p className="flex items-center space-x-1">
-                <span>UID-Isolated</span>
-                <span>•</span>
-                <span>Cloud Run Ready</span>
-                <span>•</span>
-                <span>Gemini Powered</span>
-              </p>
-            </div>
-          </footer>
+          <LayoutShell>{children}</LayoutShell>
         </AuthProvider>
       </body>
     </html>

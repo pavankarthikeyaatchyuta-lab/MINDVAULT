@@ -247,8 +247,8 @@ function JournalContent() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Loading journal...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>Loading journal...</p>
       </div>
     );
   }
@@ -257,19 +257,19 @@ function JournalContent() {
     <div className="max-w-5xl mx-auto space-y-6">
       
       {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="mv-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-lg sm:text-xl font-bold" style={{ color: 'var(--mv-text)' }}>
               {title || 'Private Reflection'}
             </h1>
-            <p className="text-xs text-slate-500 flex items-center space-x-2 mt-0.5">
+            <p className="text-xs flex items-center space-x-2 mt-0.5" style={{ color: 'var(--mv-text-muted)' }}>
               <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
               <span>•</span>
-              <span className="text-teal-600 dark:text-teal-400">UID-Isolated Storage</span>
+              <span className="text-indigo-600 dark:text-indigo-400 font-medium">UID-Isolated Storage</span>
             </p>
           </div>
         </div>
@@ -277,24 +277,24 @@ function JournalContent() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 rounded-xl transition-colors"
+            className="mv-btn-secondary flex items-center space-x-1.5 text-xs py-2 px-3.5"
           >
-            <History className="w-3.5 h-3.5" />
+            <History className="w-3.5 h-3.5 text-indigo-500" />
             <span>Past Entries ({historyList.length})</span>
           </button>
 
           <button
             onClick={startNewJournal}
-            className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 rounded-xl transition-colors"
+            className="mv-btn-secondary flex items-center space-x-1.5 text-xs py-2 px-3.5"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-indigo-500" />
             <span>New</span>
           </button>
 
           <button
             onClick={handleSaveJournal}
             disabled={messages.length === 0 || isSaving}
-            className="flex items-center space-x-1.5 px-4 py-2 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm shadow-teal-600/20 transition-all disabled:opacity-50"
+            className="mv-btn-primary flex items-center space-x-1.5 text-xs py-2 px-4"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>{isSaving ? 'Saving...' : 'Save Entry'}</span>
@@ -304,29 +304,39 @@ function JournalContent() {
 
       {/* History Drawer if toggled */}
       {showHistory && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-md space-y-3">
+        <div className="mv-card p-5 space-y-3 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Your Past Journal Sessions</h3>
-            <button onClick={() => setShowHistory(false)} className="text-xs text-slate-500 hover:text-slate-700">Close</button>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--mv-text)' }}>Your Past Journal Sessions</h3>
+            <button
+              onClick={() => setShowHistory(false)}
+              className="text-xs transition-colors hover:opacity-80"
+              style={{ color: 'var(--mv-text-muted)' }}
+            >
+              Close
+            </button>
           </div>
           {isHistoryLoading ? (
-            <div className="py-4 text-center text-xs text-slate-500">Loading entries...</div>
+            <div className="py-4 text-center text-xs" style={{ color: 'var(--mv-text-muted)' }}>Loading entries...</div>
           ) : historyList.length === 0 ? (
-            <div className="py-4 text-center text-xs text-slate-500">No previous journal sessions found.</div>
+            <div className="py-4 text-center text-xs" style={{ color: 'var(--mv-text-muted)' }}>No previous journal sessions found.</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
               {historyList.map((j) => (
                 <div
                   key={j.id}
-                  className={`p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer transition-all ${
+                  className={`p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer transition-all duration-200 ${
                     currentJournalId === j.id
-                      ? 'bg-teal-50 dark:bg-teal-950/60 border-teal-300 dark:border-teal-800'
-                      : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-teal-300'
+                      ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                      : 'border hover:border-indigo-400/50 hover:bg-indigo-500/5'
                   }`}
+                  style={currentJournalId !== j.id ? {
+                    backgroundColor: 'var(--mv-surface)',
+                    borderColor: 'var(--mv-border)',
+                  } : undefined}
                 >
                   <div onClick={() => loadJournal(j.id)} className="flex-1 min-w-0 pr-2">
-                    <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{j.title || 'Untitled Session'}</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="font-semibold truncate" style={{ color: 'var(--mv-text)' }}>{j.title || 'Untitled Session'}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--mv-text-muted)' }}>
                       {new Date(j.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -335,7 +345,7 @@ function JournalContent() {
                       e.stopPropagation();
                       handleDeleteJournal(j.id);
                     }}
-                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition-colors"
                     title="Delete journal"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -349,38 +359,45 @@ function JournalContent() {
 
       {/* Notifications / Alerts */}
       {errorMessage && (
-        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center space-x-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-300 flex items-center space-x-2 backdrop-blur-sm animate-fadeIn">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {saveSuccess && (
-        <div className="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-200 space-y-2 animate-fadeIn">
-          <div className="flex items-center space-x-2 font-semibold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+        <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs space-y-2 animate-fadeIn backdrop-blur-sm" style={{ color: 'var(--mv-text)' }}>
+          <div className="flex items-center space-x-2 font-semibold text-sm text-indigo-600 dark:text-indigo-400">
+            <CheckCircle2 className="w-4 h-4 text-indigo-500" />
             <span>Journal entry saved successfully</span>
           </div>
 
           {summary && (
-            <div className="mt-2 p-3 bg-white/80 dark:bg-slate-900/80 rounded-xl border border-teal-100 dark:border-teal-900/50">
-              <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">AI Summary:</span>
-              <p className="text-slate-600 dark:text-slate-300 italic">{summary}</p>
+            <div
+              className="mt-2 p-3 rounded-xl border"
+              style={{
+                backgroundColor: 'var(--mv-surface)',
+                borderColor: 'var(--mv-border)',
+              }}
+            >
+              <span className="font-semibold block mb-1" style={{ color: 'var(--mv-text)' }}>AI Summary:</span>
+              <p className="italic" style={{ color: 'var(--mv-text-muted)' }}>{summary}</p>
             </div>
           )}
 
           {savedMemories.length > 0 && (
             <div className="mt-2 space-y-1.5">
-              <span className="font-semibold text-slate-700 dark:text-slate-300 block">
+              <span className="font-semibold block" style={{ color: 'var(--mv-text)' }}>
                 {savedMemories.length} Structured {savedMemories.length === 1 ? 'Memory' : 'Memories'} Extracted:
               </span>
               <div className="flex flex-wrap gap-2">
                 {savedMemories.map((m) => (
                   <span
                     key={m.id}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 text-[11px] font-medium text-teal-700 dark:text-teal-300"
+                    className="mv-badge border"
+                    style={{ borderColor: 'var(--mv-border)' }}
                   >
-                    <Sparkles className="w-3 h-3 text-teal-500" />
+                    <Sparkles className="w-3 h-3 text-violet-500 mr-1" />
                     <span>[{m.category}] {m.title}</span>
                   </span>
                 ))}
@@ -391,17 +408,17 @@ function JournalContent() {
       )}
 
       {/* Main Journal / Conversation Canvas */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm min-h-[500px] flex flex-col justify-between">
+      <div className="mv-card min-h-[500px] flex flex-col justify-between overflow-hidden shadow-sm">
         
         {/* Messages Stream */}
         <div className="p-6 sm:p-8 space-y-6 flex-1 overflow-y-auto max-h-[600px]">
           {messages.length === 0 ? (
-            <div className="text-center py-16 space-y-4 max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto">
-                <Brain className="w-6 h-6" />
+            <div className="text-center py-16 space-y-4 max-w-md mx-auto animate-fadeIn">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto shadow-glow-indigo">
+                <Brain className="w-7 h-7" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">What is on your mind today?</h2>
-              <p className="text-sm text-slate-500 leading-relaxed">
+              <h2 className="text-xl font-bold" style={{ color: 'var(--mv-text)' }}>What is on your mind today?</h2>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
                 Write down your thoughts, breakthroughs, decisions, or struggles. MindVault reflects with you and preserves what matters.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
@@ -411,7 +428,12 @@ function JournalContent() {
                     onClick={() => {
                       setInputValue(prompt);
                     }}
-                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950 hover:text-teal-600 transition-colors"
+                    className="text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-300 hover:bg-violet-500/10"
+                    style={{
+                      backgroundColor: 'var(--mv-surface)',
+                      borderColor: 'var(--mv-border)',
+                      color: 'var(--mv-text-muted)',
+                    }}
                   >
                     {prompt}
                   </button>
@@ -427,22 +449,27 @@ function JournalContent() {
                   className={`flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isUser && (
-                    <div className="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-xl bg-violet-500/15 border border-violet-500/25 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0 mt-1 shadow-sm">
                       <Sparkles className="w-4 h-4" />
                     </div>
                   )}
                   <div
-                    className={`max-w-2xl px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${
+                    className={`max-w-2xl px-5 py-3.5 rounded-2xl text-sm leading-relaxed transition-all duration-200 ${
                       isUser
-                        ? 'bg-slate-900 dark:bg-slate-800 text-white rounded-br-none shadow-sm'
-                        : 'bg-slate-100 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700'
+                        ? 'bg-indigo-600 text-white rounded-br-sm shadow-md shadow-indigo-500/20'
+                        : 'rounded-bl-sm backdrop-blur-md border border-violet-500/20 shadow-sm'
                     }`}
+                    style={!isUser ? {
+                      backgroundColor: 'var(--mv-surface)',
+                      color: 'var(--mv-text)',
+                    } : undefined}
                   >
                     <p className="whitespace-pre-wrap">{m.content}</p>
                     <span
                       className={`text-[10px] block mt-1.5 ${
-                        isUser ? 'text-slate-400 text-right' : 'text-slate-500'
+                        isUser ? 'text-indigo-200 text-right' : ''
                       }`}
+                      style={!isUser ? { color: 'var(--mv-text-muted)' } : undefined}
                     >
                       {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -453,11 +480,17 @@ function JournalContent() {
           )}
 
           {isSending && (
-            <div className="flex items-start space-x-3 justify-start">
-              <div className="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 mt-1">
+            <div className="flex items-start space-x-3 justify-start animate-fadeIn">
+              <div className="w-8 h-8 rounded-xl bg-violet-500/15 border border-violet-500/25 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0 mt-1">
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800/80 px-4 py-3 rounded-2xl rounded-bl-none text-xs text-slate-500 border border-slate-200 dark:border-slate-700 flex items-center space-x-2">
+              <div
+                className="px-4 py-3 rounded-2xl rounded-bl-sm text-xs border border-violet-500/20 flex items-center space-x-2 backdrop-blur-md"
+                style={{
+                  backgroundColor: 'var(--mv-surface)',
+                  color: 'var(--mv-text-muted)',
+                }}
+              >
                 <span>MindVault is reflecting on your thoughts...</span>
               </div>
             </div>
@@ -467,7 +500,13 @@ function JournalContent() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 rounded-b-2xl">
+        <div
+          className="p-4 sm:p-5 border-t rounded-b-2xl backdrop-blur-md"
+          style={{
+            borderColor: 'var(--mv-border)',
+            backgroundColor: 'var(--mv-surface)',
+          }}
+        >
           <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
             <textarea
               rows={1}
@@ -480,12 +519,12 @@ function JournalContent() {
                 }
               }}
               placeholder="Write your thoughts or ask for a reflection (Enter to send, Shift+Enter for new line)..."
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none max-h-32"
+              className="mv-input flex-1 resize-none max-h-32 focus:ring-2 focus:ring-indigo-500"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || isSending}
-              className="p-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/20 transition-all disabled:opacity-50 shrink-0"
+              className="mv-btn-primary p-3 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-50"
               title="Send message"
             >
               <Send className="w-4 h-4" />
@@ -504,8 +543,8 @@ export default function JournalPage() {
     <Suspense
       fallback={
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-          <p className="text-sm text-slate-500">Loading journal...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>Loading journal...</p>
         </div>
       }
     >

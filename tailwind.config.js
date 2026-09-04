@@ -7,22 +7,42 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        brand: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
-        }
+        background: "var(--mv-bg)",
+        foreground: "var(--mv-text)",
+        mv: {
+          bg: 'var(--mv-bg)',
+          'bg-subtle': 'var(--mv-bg-subtle)',
+          surface: 'var(--mv-surface)',
+          primary: 'var(--mv-primary)',
+          'primary-light': 'var(--mv-primary-light)',
+          accent: 'var(--mv-accent)',
+          'accent-soft': 'var(--mv-accent-soft)',
+          success: 'var(--mv-success)',
+          text: 'var(--mv-text)',
+          'text-muted': 'var(--mv-text-muted)',
+          border: 'var(--mv-border)',
+        },
+      },
+      borderRadius: {
+        '3xl': '1.5rem',
+        '4xl': '2rem',
+      },
+      boxShadow: {
+        'neumorphic': '6px 6px 16px rgba(0, 0, 0, 0.06), -4px -4px 12px rgba(255, 255, 255, 0.8)',
+        'neumorphic-dark': '6px 6px 16px rgba(0, 0, 0, 0.3), -4px -4px 12px rgba(60, 50, 90, 0.15)',
+        'glow-indigo': '0 0 20px rgba(99, 102, 241, 0.15)',
+        'glow-violet': '0 0 20px rgba(139, 92, 246, 0.15)',
+      },
+      backdropBlur: {
+        'xs': '2px',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.4s ease-out',
+        'slide-in': 'slideIn 0.3s ease-out',
       },
     },
   },

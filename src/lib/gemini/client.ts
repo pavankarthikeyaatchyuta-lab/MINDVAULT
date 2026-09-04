@@ -21,6 +21,6 @@ export async function getGeminiClient(): Promise<GoogleGenAI> {
 
 /**
  * Default Gemini model used across MindVault services.
- * Uses lightweight/fast Gemini 2.5 Flash for cost-effective, high-speed summarization & extraction.
+ * Uses fast, modern Gemini Flash for cost-effective, high-speed summarization & extraction.
  */
-export const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+export const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';

@@ -21,6 +21,27 @@ function assertValidAuthenticatedUid(authenticatedUid: string): void {
   }
 }
 
+/**
+ * Recursively strips keys whose value is `undefined` from a plain object.
+ * Firestore rejects `undefined` values — this utility lets optional fields
+ * (e.g. location, summary, tags) be omitted cleanly instead of erroring.
+ */
+function stripUndefined<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object' || Array.isArray(obj) || obj instanceof Date) {
+    return obj;
+  }
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    if (value === undefined) continue;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+      cleaned[key] = stripUndefined(value);
+    } else {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned as T;
+}
+
 function assertValidDocId(id: string): void {
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
     throw new Error('Invalid document ID provided.');
@@ -53,7 +74,7 @@ export const JournalRepository = {
       updatedAt: now,
     };
 
-    await docRef.set(entry);
+    await docRef.set(stripUndefined(entry));
     return entry;
   },
 
@@ -75,7 +96,7 @@ export const JournalRepository = {
     assertValidDocId(journalId);
     const docRef = this.getCollection(authenticatedUid).doc(journalId);
     const now = new Date().toISOString();
-    const patch = { ...updates, updatedAt: now };
+    const patch = stripUndefined({ ...updates, updatedAt: now });
 
     await docRef.update(patch);
     const snap = await docRef.get();
@@ -112,7 +133,7 @@ export const MemoryRepository = {
       updatedAt: now,
     };
 
-    await docRef.set(item);
+    await docRef.set(stripUndefined(item));
     return item;
   },
 
@@ -136,7 +157,7 @@ export const MemoryRepository = {
     assertValidDocId(memoryId);
     const docRef = this.getCollection(authenticatedUid).doc(memoryId);
     const now = new Date().toISOString();
-    await docRef.update({ ...updates, updatedAt: now });
+    await docRef.update(stripUndefined({ ...updates, updatedAt: now }));
     const snap = await docRef.get();
     return snap.data() as MemoryItem;
   },
@@ -170,7 +191,7 @@ export const GoalRepository = {
       updatedAt: now,
     };
 
-    await docRef.set(goal);
+    await docRef.set(stripUndefined(goal));
     return goal;
   },
 
@@ -194,7 +215,7 @@ export const GoalRepository = {
     assertValidDocId(goalId);
     const docRef = this.getCollection(authenticatedUid).doc(goalId);
     const now = new Date().toISOString();
-    await docRef.update({ ...updates, updatedAt: now });
+    await docRef.update(stripUndefined({ ...updates, updatedAt: now }));
     const snap = await docRef.get();
     return snap.data() as GoalItem;
   },
@@ -227,7 +248,7 @@ export const RewindRepository = {
       createdAt: now,
     };
 
-    await docRef.set(report);
+    await docRef.set(stripUndefined(report));
     return report;
   },
 

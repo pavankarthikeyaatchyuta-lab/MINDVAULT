@@ -32,79 +32,79 @@ const FILTER_CONFIG: Record<
   ALL: {
     label: 'All Activity',
     icon: Clock,
-    color: 'text-slate-700 dark:text-slate-300',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    border: 'border-slate-300 dark:border-slate-700',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/20',
   },
   JOURNAL: {
     label: 'Journals',
     icon: BookOpen,
-    color: 'text-teal-700 dark:text-teal-300',
-    bg: 'bg-teal-50 dark:bg-teal-950/60',
-    border: 'border-teal-200 dark:border-teal-800',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/20',
   },
   ACHIEVEMENT: {
     label: 'Achievements',
     icon: Award,
-    color: 'text-emerald-700 dark:text-emerald-300',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/60',
-    border: 'border-emerald-200 dark:border-emerald-800',
+    color: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
   },
   DECISION: {
     label: 'Decisions',
     icon: Scale,
-    color: 'text-indigo-700 dark:text-indigo-300',
-    bg: 'bg-indigo-50 dark:bg-indigo-950/60',
-    border: 'border-indigo-200 dark:border-indigo-800',
+    color: 'text-violet-600 dark:text-violet-400',
+    bg: 'bg-violet-500/10',
+    border: 'border-violet-500/20',
   },
   IDEA: {
     label: 'Ideas',
     icon: Lightbulb,
-    color: 'text-amber-700 dark:text-amber-300',
-    bg: 'bg-amber-50 dark:bg-amber-950/60',
-    border: 'border-amber-200 dark:border-amber-800',
+    color: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
   },
   GOAL: {
     label: 'Goals',
     icon: Target,
-    color: 'text-blue-700 dark:text-blue-300',
-    bg: 'bg-blue-50 dark:bg-blue-950/60',
-    border: 'border-blue-200 dark:border-blue-800',
+    color: 'text-sky-600 dark:text-sky-400',
+    bg: 'bg-sky-500/10',
+    border: 'border-sky-500/20',
   },
   EVENT: {
     label: 'Events',
     icon: Calendar,
-    color: 'text-purple-700 dark:text-purple-300',
-    bg: 'bg-purple-50 dark:bg-purple-950/60',
-    border: 'border-purple-200 dark:border-purple-800',
+    color: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
   },
   PERSON: {
     label: 'People',
     icon: Users,
-    color: 'text-pink-700 dark:text-pink-300',
-    bg: 'bg-pink-50 dark:bg-pink-950/60',
-    border: 'border-pink-200 dark:border-pink-800',
+    color: 'text-pink-600 dark:text-pink-400',
+    bg: 'bg-pink-500/10',
+    border: 'border-pink-500/20',
   },
   PLACE: {
     label: 'Places',
     icon: MapPin,
-    color: 'text-teal-700 dark:text-teal-300',
-    bg: 'bg-teal-50 dark:bg-teal-950/60',
-    border: 'border-teal-200 dark:border-teal-800',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/20',
   },
   CONCERN: {
     label: 'Concerns',
     icon: AlertTriangle,
-    color: 'text-rose-700 dark:text-rose-300',
-    bg: 'bg-rose-50 dark:bg-rose-950/60',
-    border: 'border-rose-200 dark:border-rose-800',
+    color: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/20',
   },
   PREFERENCE: {
     label: 'Preferences',
     icon: Star,
-    color: 'text-orange-700 dark:text-orange-300',
-    bg: 'bg-orange-50 dark:bg-orange-950/60',
-    border: 'border-orange-200 dark:border-orange-800',
+    color: 'text-orange-600 dark:text-orange-400',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/20',
   },
 };
 
@@ -176,24 +176,24 @@ export default function TimelinePage() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Loading your timeline...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>Loading your timeline...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
+    <div className="max-w-4xl mx-auto space-y-8 py-4 animate-fadeIn">
       {/* Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-semibold">
-          <Clock className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
+          <Clock className="w-3.5 h-3.5 text-indigo-500" />
           <span>Chronological Growth Story</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--mv-text)' }}>
           Personal Growth Timeline
         </h1>
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+        <p className="text-sm sm:text-base" style={{ color: 'var(--mv-text-muted)' }}>
           Trace how your ideas, milestones, decisions, and goals have developed over time from your actual journal records.
         </p>
       </div>
@@ -211,8 +211,8 @@ export default function TimelinePage() {
               onClick={() => setActiveFilter(fk)}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 ${
                 isSelected
-                  ? 'bg-teal-600 text-white shadow-sm shadow-teal-600/20'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-teal-300'
+                  ? 'mv-btn-primary shadow-sm shadow-indigo-500/25'
+                  : 'mv-card text-slate-600 dark:text-slate-400 hover:border-indigo-400/40 hover:text-indigo-500'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ export default function TimelinePage() {
 
       {/* Error alert */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center space-x-2">
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 flex items-center space-x-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -232,13 +232,13 @@ export default function TimelinePage() {
 
       {/* "What Changed?" Grounded Insight Banner */}
       {changeInsight && activeFilter === 'ALL' && (
-        <div className="p-5 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm flex items-start space-x-3">
-          <TrendingUp className="w-5 h-5 text-teal-600 dark:text-teal-400 mt-0.5 shrink-0" />
+        <div className="p-5 mv-card border-indigo-500/30 bg-indigo-500/5 shadow-sm flex items-start space-x-3">
+          <TrendingUp className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
           <div className="space-y-1">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-200">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
               Pattern Shift Observed
             </h3>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--mv-text)' }}>
               {changeInsight.shiftSummary}
             </p>
           </div>
@@ -250,34 +250,34 @@ export default function TimelinePage() {
         <div className="space-y-6 py-6">
           {[1, 2, 3, 4].map((n) => (
             <div key={n} className="flex items-start space-x-4 animate-pulse">
-              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
-              <div className="flex-1 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="w-32 h-4 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="w-full h-12 bg-slate-100 dark:bg-slate-850 rounded" />
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shrink-0" />
+              <div className="flex-1 p-5 mv-card space-y-2">
+                <div className="w-32 h-4 bg-indigo-500/10 rounded" />
+                <div className="w-full h-12 bg-indigo-500/5 rounded" />
               </div>
             </div>
           ))}
         </div>
       ) : items.length === 0 ? (
         /* Empty state */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto">
+        <div className="mv-card p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto">
             <Clock className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Your story starts here</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <h3 className="text-lg font-bold" style={{ color: 'var(--mv-text)' }}>Your story starts here</h3>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
             No entries match this filter yet. Write your thoughts to build your chronological growth timeline.
           </p>
           <Link
             href="/journal"
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+            className="mv-btn-primary inline-flex items-center space-x-2 px-4 py-2 text-xs font-medium"
           >
             <span>Write an Entry</span>
           </Link>
         </div>
       ) : (
         /* Populated Timeline */
-        <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+        <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-indigo-300 before:via-violet-300 before:to-indigo-200 dark:before:from-indigo-500/60 dark:before:via-violet-500/40 dark:before:to-indigo-500/10">
           {items.map((item) => {
             const config = FILTER_CONFIG[item.type] || FILTER_CONFIG.JOURNAL;
             const Icon = config.icon;
@@ -287,13 +287,13 @@ export default function TimelinePage() {
                 
                 {/* Timeline node icon */}
                 <div
-                  className={`absolute -left-6 sm:-left-8 top-3 w-6 h-6 sm:w-8 sm:h-8 rounded-xl border flex items-center justify-center ${config.bg} ${config.border} shadow-sm group-hover:scale-110 transition-transform`}
+                  className={`absolute -left-6 sm:-left-8 top-3 w-6 h-6 sm:w-8 sm:h-8 rounded-xl border flex items-center justify-center ${config.bg} ${config.border} shadow-sm group-hover:scale-110 transition-transform backdrop-blur-md`}
                 >
                   <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${config.color}`} />
                 </div>
 
                 {/* Timeline Content Card */}
-                <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-teal-300 dark:hover:border-teal-700 transition-all space-y-3">
+                <div className="mv-card mv-card-hover p-5 sm:p-6 space-y-3">
                   
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div className="flex items-center space-x-2">
@@ -302,7 +302,7 @@ export default function TimelinePage() {
                       >
                         {config.label}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
                         {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
@@ -310,7 +310,7 @@ export default function TimelinePage() {
                     {item.sourceJournalId && (
                       <Link
                         href={`/journal?id=${item.sourceJournalId}`}
-                        className="inline-flex items-center space-x-1 text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium self-start sm:self-auto"
+                        className="inline-flex items-center space-x-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-violet-500 hover:underline font-medium self-start sm:self-auto"
                       >
                         <span>View source entry</span>
                         <ExternalLink className="w-3 h-3" />
@@ -319,21 +319,26 @@ export default function TimelinePage() {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                    <h3 className="text-base font-bold leading-snug" style={{ color: 'var(--mv-text)' }}>
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
                       {item.description}
                     </p>
                   </div>
 
                   {/* Tags */}
                   {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-wrap gap-1 pt-2 border-t" style={{ borderColor: 'var(--mv-border)' }}>
                       {item.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          className="text-[10px] px-2 py-0.5 rounded-md border"
+                          style={{
+                            color: 'var(--mv-text-muted)',
+                            borderColor: 'var(--mv-border)',
+                            background: 'rgba(99, 102, 241, 0.05)',
+                          }}
                         >
                           #{tag}
                         </span>

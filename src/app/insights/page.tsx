@@ -13,14 +13,10 @@ import {
   MapPin,
   ExternalLink,
   BookOpen,
-  Calendar,
-  Clock,
   Loader2,
   AlertCircle,
   Lightbulb,
-  CheckCircle2,
   ArrowRight,
-  Shield,
 } from 'lucide-react';
 import { InsightsReport } from '@/types';
 
@@ -70,31 +66,33 @@ export default function InsightsPage() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Synthesizing personal insights from your vault...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>
+          Synthesizing personal insights from your vault...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 py-4">
+    <div className="max-w-5xl mx-auto space-y-8 py-4 animate-fadeIn">
       {/* Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-semibold">
-          <Brain className="w-3.5 h-3.5" />
+        <div className="mv-badge">
+          <Brain className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
           <span>Grounded Personal Evolution Engine</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--mv-text)' }}>
           MindVault Insights
         </h1>
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+        <p className="text-sm sm:text-base" style={{ color: 'var(--mv-text-muted)' }}>
           Discover how your focus, goals, interests, and patterns evolve over time — grounded strictly in verified journal data.
         </p>
       </div>
 
       {/* Error alert */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center space-x-2">
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 flex items-center space-x-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -103,75 +101,99 @@ export default function InsightsPage() {
       {/* Loading Skeleton */}
       {isLoading ? (
         <div className="space-y-6">
-          <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse space-y-4">
-            <div className="w-48 h-6 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+          <div className="mv-card p-8 animate-pulse space-y-4">
+            <div className="w-48 h-6 bg-indigo-500/10 rounded-lg" />
             <div className="grid grid-cols-3 gap-4">
-              <div className="h-16 bg-slate-100 dark:bg-slate-850 rounded-xl" />
-              <div className="h-16 bg-slate-100 dark:bg-slate-850 rounded-xl" />
-              <div className="h-16 bg-slate-100 dark:bg-slate-850 rounded-xl" />
+              <div className="h-16 bg-indigo-500/5 rounded-xl" />
+              <div className="h-16 bg-indigo-500/5 rounded-xl" />
+              <div className="h-16 bg-indigo-500/5 rounded-xl" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-56 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />
-            <div className="h-56 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />
+            <div className="h-56 mv-card animate-pulse" />
+            <div className="h-56 mv-card animate-pulse" />
           </div>
         </div>
       ) : insights?.isEmpty ? (
         /* Empty State */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto">
+        <div className="mv-card p-12 text-center space-y-4 max-w-md mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 mx-auto">
             <Brain className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Your story is waiting to be written</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <h3 className="text-lg font-bold" style={{ color: 'var(--mv-text)' }}>
+            Your story is waiting to be written
+          </h3>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
             Write your first journal entries to unlock deep, grounded insights into your emerging interests, goals, and personal patterns.
           </p>
           <Link
             href="/journal"
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+            className="mv-btn-primary inline-flex items-center space-x-2 text-xs"
           >
             <span>Write an Entry</span>
           </Link>
         </div>
       ) : insights ? (
         /* Populated Insights */
-        <div className="space-y-6 animate-fadeIn">
-          
+        <div className="space-y-6">
           {/* Executive Summary Card */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-teal-950/15 via-emerald-950/10 to-slate-900/60 border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-slate-900 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-teal-200/40 dark:border-teal-800/40">
+          <div
+            className="mv-card p-6 sm:p-8 space-y-4 relative overflow-hidden"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, var(--mv-surface) 100%)',
+            }}
+          >
+            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--mv-border)' }}>
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">Growth & Pattern Summary</h2>
+                <Sparkles className="w-5 h-5 text-indigo-500" />
+                <h2 className="text-base font-bold" style={{ color: 'var(--mv-text)' }}>
+                  Growth & Pattern Summary
+                </h2>
               </div>
-              <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wider">
+              <span className="mv-badge text-[11px] font-semibold uppercase tracking-wider">
                 Grounded Synthesis
               </span>
             </div>
 
-            <p className="text-sm sm:text-base text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
+            <p className="text-sm sm:text-base leading-relaxed font-normal" style={{ color: 'var(--mv-text)' }}>
               {insights.summary}
             </p>
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-850/80 border border-slate-200 dark:border-slate-750">
-                <span className="text-[11px] text-slate-500 block">Total Reflections</span>
-                <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
+              <div
+                className="p-3.5 rounded-xl border"
+                style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
+              >
+                <span className="text-[11px] block" style={{ color: 'var(--mv-text-muted)' }}>
+                  Total Reflections
+                </span>
+                <span className="text-xl font-extrabold mt-0.5 block" style={{ color: 'var(--mv-text)' }}>
                   {insights.periodStats.totalJournals}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-850/80 border border-slate-200 dark:border-slate-750">
-                <span className="text-[11px] text-slate-500 block">Extracted Memories</span>
-                <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
+              <div
+                className="p-3.5 rounded-xl border"
+                style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
+              >
+                <span className="text-[11px] block" style={{ color: 'var(--mv-text-muted)' }}>
+                  Extracted Memories
+                </span>
+                <span className="text-xl font-extrabold mt-0.5 block" style={{ color: 'var(--mv-text)' }}>
                   {insights.periodStats.totalMemories}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-850/80 border border-slate-200 dark:border-slate-750">
-                <span className="text-[11px] text-slate-500 block">Active Days</span>
-                <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
+              <div
+                className="p-3.5 rounded-xl border"
+                style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
+              >
+                <span className="text-[11px] block" style={{ color: 'var(--mv-text-muted)' }}>
+                  Active Days
+                </span>
+                <span className="text-xl font-extrabold mt-0.5 block" style={{ color: 'var(--mv-text)' }}>
                   {insights.periodStats.activeDays}
                 </span>
               </div>
@@ -180,91 +202,120 @@ export default function InsightsPage() {
 
           {/* Grid: Emerging Interests & Recurring Themes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* Emerging Interests */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
-                <TrendingUp className="w-5 h-5 text-teal-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Emerging Interests</h3>
+            <div className="mv-card p-6 space-y-4">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-5 h-5 text-indigo-500" />
+                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--mv-text)' }}>
+                  Emerging Interests
+                </h3>
               </div>
-              <p className="text-xs text-slate-500">Topics that appeared with increasing frequency in recent entries.</p>
+              <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                Topics that appeared with increasing frequency in recent entries.
+              </p>
 
               <div className="space-y-3">
                 {insights.emergingInterests && insights.emergingInterests.length > 0 ? (
                   insights.emergingInterests.map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 space-y-1.5"
+                      className="p-3.5 rounded-xl border space-y-1.5"
+                      style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-slate-900 dark:text-white">#{item.interest}</span>
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300 font-semibold">
+                        <span className="font-bold text-xs" style={{ color: 'var(--mv-text)' }}>
+                          #{item.interest}
+                        </span>
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                           {item.earlierCount} → {item.recentCount} mentions
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">{item.explanation}</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
+                        {item.explanation}
+                      </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400">Not enough data to calculate emerging trends yet.</p>
+                  <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                    Not enough data to calculate emerging trends yet.
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Recurring Themes */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
+            <div className="mv-card p-6 space-y-4">
+              <div className="flex items-center space-x-2">
                 <Lightbulb className="w-5 h-5 text-amber-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Recurring Core Themes</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--mv-text)' }}>
+                  Recurring Core Themes
+                </h3>
               </div>
-              <p className="text-xs text-slate-500">Persistent themes that frequently anchor your thoughts.</p>
+              <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                Persistent themes that frequently anchor your thoughts.
+              </p>
 
               <div className="space-y-3">
                 {insights.recurringThemes && insights.recurringThemes.length > 0 ? (
                   insights.recurringThemes.map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 space-y-1"
+                      className="p-3.5 rounded-xl border space-y-1"
+                      style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-slate-900 dark:text-white">#{item.theme}</span>
-                        <span className="text-[10px] text-slate-400 font-medium">{item.count} entries</span>
+                        <span className="font-bold text-xs" style={{ color: 'var(--mv-text)' }}>
+                          #{item.theme}
+                        </span>
+                        <span className="text-[10px] font-medium" style={{ color: 'var(--mv-text-muted)' }}>
+                          {item.count} entries
+                        </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--mv-text-muted)' }}>
+                        {item.description}
+                      </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400">No recurring themes detected yet.</p>
+                  <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                    No recurring themes detected yet.
+                  </p>
                 )}
               </div>
             </div>
-
           </div>
 
           {/* Goals & Momentum */}
           {insights.goalMomentum && insights.goalMomentum.length > 0 && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
-                <Target className="w-5 h-5 text-blue-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider">Goals & Momentum</h3>
+            <div className="mv-card p-6 space-y-4">
+              <div className="flex items-center space-x-2">
+                <Target className="w-5 h-5 text-indigo-500" />
+                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--mv-text)' }}>
+                  Goals & Momentum
+                </h3>
               </div>
-              <p className="text-xs text-slate-500">Tracked goals with non-judgmental progress indicators.</p>
+              <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                Tracked goals with non-judgmental progress indicators.
+              </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {insights.goalMomentum.map((g, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 flex items-start justify-between"
+                    className="p-3.5 rounded-xl border flex items-start justify-between"
+                    style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
                   >
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">{g.goal}</h4>
+                      <h4 className="text-xs font-bold" style={{ color: 'var(--mv-text)' }}>
+                        {g.goal}
+                      </h4>
                       <span
-                        className={`inline-block text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full ${
+                        className={`inline-block text-[10px] font-semibold mt-1 px-2.5 py-0.5 rounded-full border ${
                           g.status === 'completed'
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
                             : g.status === 'active'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                            : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                            ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/25'
+                            : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/25'
                         }`}
                       >
                         {g.status.toUpperCase()}
@@ -273,9 +324,9 @@ export default function InsightsPage() {
                     {g.sourceJournalId && (
                       <Link
                         href={`/journal?id=${g.sourceJournalId}`}
-                        className="text-teal-600 dark:text-teal-400 hover:underline text-xs flex items-center space-x-1"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-violet-500 text-xs flex items-center space-x-1 transition-colors"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
                     )}
                   </div>
@@ -286,72 +337,95 @@ export default function InsightsPage() {
 
           {/* People & Places Footprint */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            
             {/* People */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <div className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
-                <Users className="w-4 h-4 text-pink-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider">Social Footprint</h3>
+            <div className="mv-card p-6 space-y-3">
+              <div className="flex items-center space-x-2">
+                <Users className="w-4 h-4 text-violet-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--mv-text)' }}>
+                  Social Footprint
+                </h3>
               </div>
               <div className="space-y-2">
                 {insights.peopleAndPlaces.topPeople && insights.peopleAndPlaces.topPeople.length > 0 ? (
                   insights.peopleAndPlaces.topPeople.map((p, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 text-xs"
+                      className="flex items-center justify-between p-2.5 rounded-xl border text-xs"
+                      style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
                     >
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{p.name}</span>
-                      <span className="text-[11px] text-slate-400">{p.mentions} mention{p.mentions > 1 ? 's' : ''}</span>
+                      <span className="font-semibold" style={{ color: 'var(--mv-text)' }}>
+                        {p.name}
+                      </span>
+                      <span className="text-[11px]" style={{ color: 'var(--mv-text-muted)' }}>
+                        {p.mentions} mention{p.mentions > 1 ? 's' : ''}
+                      </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400">No person memories recorded yet.</p>
+                  <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                    No person memories recorded yet.
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Places */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <div className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
-                <MapPin className="w-4 h-4 text-teal-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider">Geographic Footprint</h3>
+            <div className="mv-card p-6 space-y-3">
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-indigo-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--mv-text)' }}>
+                  Geographic Footprint
+                </h3>
               </div>
               <div className="space-y-2">
                 {insights.peopleAndPlaces.topPlaces && insights.peopleAndPlaces.topPlaces.length > 0 ? (
                   insights.peopleAndPlaces.topPlaces.map((pl, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 text-xs"
+                      className="flex items-center justify-between p-2.5 rounded-xl border text-xs"
+                      style={{ background: 'rgba(99, 102, 241, 0.04)', borderColor: 'var(--mv-border)' }}
                     >
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{pl.name}</span>
-                      <span className="text-[11px] text-slate-400">{pl.mentions} mention{pl.mentions > 1 ? 's' : ''}</span>
+                      <span className="font-semibold" style={{ color: 'var(--mv-text)' }}>
+                        {pl.name}
+                      </span>
+                      <span className="text-[11px]" style={{ color: 'var(--mv-text-muted)' }}>
+                        {pl.mentions} mention{pl.mentions > 1 ? 's' : ''}
+                      </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400">No place memories recorded yet.</p>
+                  <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+                    No place memories recorded yet.
+                  </p>
                 )}
               </div>
               <div className="pt-1">
                 <Link
                   href="/map"
-                  className="inline-flex items-center space-x-1.5 text-xs text-teal-600 dark:text-teal-400 hover:underline font-semibold"
+                  className="inline-flex items-center space-x-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:text-violet-500 font-semibold transition-colors"
                 >
                   <span>Explore on Memory Map</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
-
           </div>
 
           {/* Grounded Reflection Card */}
           {insights.reflection && (
-            <div className="p-6 sm:p-8 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-bold text-teal-800 dark:text-teal-200 uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <div
+              className="p-6 sm:p-8 rounded-2xl border space-y-2 relative overflow-hidden backdrop-blur-md"
+              style={{
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.08))',
+                borderColor: 'rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 4px 20px rgba(139, 92, 246, 0.08)',
+              }}
+            >
+              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                <Sparkles className="w-4 h-4 text-violet-500" />
                 <span>Closing Perspective</span>
               </div>
-              <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 italic leading-relaxed">
+              <p className="text-sm sm:text-base italic leading-relaxed" style={{ color: 'var(--mv-text)' }}>
                 &ldquo;{insights.reflection}&rdquo;
               </p>
             </div>
@@ -359,9 +433,12 @@ export default function InsightsPage() {
 
           {/* Sources Section */}
           {insights.sources && insights.sources.length > 0 && (
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <BookOpen className="w-3.5 h-3.5" />
+            <div className="pt-4 border-t space-y-3" style={{ borderColor: 'var(--mv-border)' }}>
+              <div
+                className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--mv-text-muted)' }}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
                 <span>Verified Source Documents</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -369,19 +446,17 @@ export default function InsightsPage() {
                   <Link
                     key={idx}
                     href={`/journal?id=${s.sourceId}`}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-teal-50 dark:hover:bg-teal-950 border border-slate-200 dark:border-slate-750 text-xs text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    className="mv-badge hover:bg-indigo-500/20 border border-indigo-500/20 text-xs space-x-1.5 py-1.5 px-3 transition-all hover:scale-105"
                   >
-                    <span>{s.title}</span>
-                    <ExternalLink className="w-3 h-3 text-slate-400" />
+                    <span style={{ color: 'var(--mv-text)' }}>{s.title}</span>
+                    <ExternalLink className="w-3 h-3 text-indigo-400" />
                   </Link>
                 ))}
               </div>
             </div>
           )}
-
         </div>
       ) : null}
-
     </div>
   );
 }

@@ -28,70 +28,86 @@ import { MemoryItem, MemoryCategory } from '@/types';
 
 const CATEGORY_CONFIG: Record<
   MemoryCategory,
-  { label: string; icon: React.ElementType; color: string; bg: string; border: string }
+  {
+    label: string;
+    icon: React.ElementType;
+    color: string;
+    bg: string;
+    border: string;
+    borderAccent: string;
+  }
 > = {
   ACHIEVEMENT: {
     label: 'Achievement',
     icon: Award,
     color: 'text-emerald-700 dark:text-emerald-300',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/60',
-    border: 'border-emerald-200 dark:border-emerald-800',
+    bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+    border: 'border-emerald-400/25 dark:border-emerald-500/25',
+    borderAccent: 'border-l-emerald-400 dark:border-l-emerald-500',
   },
   DECISION: {
     label: 'Decision',
     icon: Scale,
     color: 'text-indigo-700 dark:text-indigo-300',
-    bg: 'bg-indigo-50 dark:bg-indigo-950/60',
-    border: 'border-indigo-200 dark:border-indigo-800',
+    bg: 'bg-indigo-500/10 dark:bg-indigo-500/15',
+    border: 'border-indigo-400/25 dark:border-indigo-500/25',
+    borderAccent: 'border-l-indigo-400 dark:border-l-indigo-500',
   },
   IDEA: {
     label: 'Idea',
     icon: Lightbulb,
     color: 'text-amber-700 dark:text-amber-300',
-    bg: 'bg-amber-50 dark:bg-amber-950/60',
-    border: 'border-amber-200 dark:border-amber-800',
+    bg: 'bg-amber-500/10 dark:bg-amber-500/15',
+    border: 'border-amber-400/25 dark:border-amber-500/25',
+    borderAccent: 'border-l-amber-400 dark:border-l-amber-500',
   },
   GOAL: {
     label: 'Goal',
     icon: Target,
     color: 'text-blue-700 dark:text-blue-300',
-    bg: 'bg-blue-50 dark:bg-blue-950/60',
-    border: 'border-blue-200 dark:border-blue-800',
+    bg: 'bg-blue-500/10 dark:bg-blue-500/15',
+    border: 'border-blue-400/25 dark:border-blue-500/25',
+    borderAccent: 'border-l-blue-400 dark:border-l-blue-500',
   },
   EVENT: {
     label: 'Event',
     icon: Calendar,
     color: 'text-purple-700 dark:text-purple-300',
-    bg: 'bg-purple-50 dark:bg-purple-950/60',
-    border: 'border-purple-200 dark:border-purple-800',
+    bg: 'bg-purple-500/10 dark:bg-purple-500/15',
+    border: 'border-purple-400/25 dark:border-purple-500/25',
+    borderAccent: 'border-l-purple-400 dark:border-l-purple-500',
   },
   PERSON: {
     label: 'Person',
     icon: Users,
     color: 'text-pink-700 dark:text-pink-300',
-    bg: 'bg-pink-50 dark:bg-pink-950/60',
-    border: 'border-pink-200 dark:border-pink-800',
+    bg: 'bg-pink-500/10 dark:bg-pink-500/15',
+    border: 'border-pink-400/25 dark:border-pink-500/25',
+    borderAccent: 'border-l-pink-400 dark:border-l-pink-500',
   },
   PLACE: {
     label: 'Place',
     icon: MapPin,
-    color: 'text-teal-700 dark:text-teal-300',
-    bg: 'bg-teal-50 dark:bg-teal-950/60',
-    border: 'border-teal-200 dark:border-teal-800',
+    color: 'text-violet-700 dark:text-violet-300',
+    bg: 'bg-violet-500/10 dark:bg-violet-500/15',
+    border: 'border-violet-400/25 dark:border-violet-500/25',
+    borderAccent: 'border-l-violet-400 dark:border-l-violet-500',
   },
   CONCERN: {
     label: 'Concern',
     icon: AlertTriangle,
     color: 'text-rose-700 dark:text-rose-300',
-    bg: 'bg-rose-50 dark:bg-rose-950/60',
-    border: 'border-rose-200 dark:border-rose-800',
+    bg: 'bg-rose-500/10 dark:bg-rose-500/15',
+    border: 'border-rose-400/25 dark:border-rose-500/25',
+    borderAccent: 'border-l-rose-400 dark:border-l-rose-500',
   },
   PREFERENCE: {
     label: 'Preference',
     icon: Star,
     color: 'text-orange-700 dark:text-orange-300',
-    bg: 'bg-orange-50 dark:bg-orange-950/60',
-    border: 'border-orange-200 dark:border-orange-800',
+    bg: 'bg-orange-500/10 dark:bg-orange-500/15',
+    border: 'border-orange-400/25 dark:border-orange-500/25',
+    borderAccent: 'border-l-orange-400 dark:border-l-orange-500',
   },
 };
 
@@ -238,31 +254,32 @@ export default function MemoriesPage() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Loading your memories...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+        <p className="text-sm text-[var(--mv-text-muted)]">Loading your memories...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto py-2">
-      
+    <div className="space-y-8 max-w-6xl mx-auto py-4 animate-fadeIn">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="mv-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/15 to-violet-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Extracted Memories</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--mv-text)]">
+              Extracted Memories
+            </h1>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[var(--mv-text-muted)] pl-[52px]">
             Structured insights, achievements, goals, and decisions preserved from your journal sessions.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center space-x-2 self-start sm:self-auto pl-[52px] sm:pl-0">
+          <span className="mv-badge border border-indigo-500/20 px-3 py-1.5 text-xs font-semibold">
             {memories.length} {memories.length === 1 ? 'Memory' : 'Memories'} Total
           </span>
         </div>
@@ -275,17 +292,37 @@ export default function MemoriesPage() {
           const config = cat !== 'ALL' ? CATEGORY_CONFIG[cat] : null;
           const Icon = config ? config.icon : Filter;
 
+          let pillClasses =
+            'flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 ';
+          if (isSelected) {
+            if (cat === 'ALL') {
+              pillClasses +=
+                'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 border border-transparent';
+            } else if (config) {
+              pillClasses += `${config.bg} ${config.color} border ${config.border} shadow-sm font-semibold ring-1 ring-indigo-500/20`;
+            }
+          } else {
+            pillClasses +=
+              'bg-[var(--mv-surface)] border border-[var(--mv-border)] text-[var(--mv-text-muted)] hover:text-[var(--mv-text)] hover:border-indigo-400/40 backdrop-blur-md shadow-sm';
+          }
+
           return (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 ${
-                isSelected
-                  ? 'bg-teal-600 text-white shadow-sm shadow-teal-600/20'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-teal-300'
-              }`}
+              className={pillClasses}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon
+                className={`w-3.5 h-3.5 ${
+                  isSelected
+                    ? cat === 'ALL'
+                      ? 'text-white'
+                      : config?.color
+                    : config
+                    ? config.color
+                    : 'text-indigo-400'
+                }`}
+              />
               <span>{cat === 'ALL' ? 'All Memories' : config?.label}</span>
             </button>
           );
@@ -296,25 +333,25 @@ export default function MemoriesPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <div key={n} className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse space-y-3">
-              <div className="w-24 h-6 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-              <div className="w-48 h-5 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-              <div className="w-full h-12 bg-slate-100 dark:bg-slate-850 rounded-lg" />
+            <div key={n} className="mv-card p-5 animate-pulse space-y-3">
+              <div className="w-24 h-6 bg-indigo-500/10 rounded-lg" />
+              <div className="w-48 h-5 bg-indigo-500/10 rounded-lg" />
+              <div className="w-full h-12 bg-indigo-500/5 rounded-lg" />
             </div>
           ))}
         </div>
       ) : memories.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto">
+        <div className="mv-card p-12 text-center space-y-4 max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto shadow-sm">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Memories Extracted Yet</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <h3 className="text-lg font-bold text-[var(--mv-text)]">No Memories Extracted Yet</h3>
+          <p className="text-sm text-[var(--mv-text-muted)] leading-relaxed">
             Write a journal entry in the Journal section and save it. MindVault will automatically identify achievements, decisions, ideas, and goals.
           </p>
           <Link
             href="/journal"
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+            className="mv-btn-primary inline-flex items-center space-x-2 !text-xs font-medium"
           >
             <span>Start Journaling</span>
           </Link>
@@ -328,10 +365,9 @@ export default function MemoriesPage() {
             return (
               <div
                 key={m.id}
-                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-300 dark:hover:border-teal-700 shadow-sm transition-all flex flex-col justify-between space-y-4 group"
+                className={`mv-card mv-card-hover p-5 border-l-4 ${config.borderAccent} flex flex-col justify-between space-y-4 group`}
               >
-                <div className="space-y-2.5">
-                  
+                <div className="space-y-3">
                   {/* Category Badge & Actions */}
                   <div className="flex items-center justify-between">
                     <span
@@ -344,14 +380,14 @@ export default function MemoriesPage() {
                     <div className="flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditModal(m)}
-                        className="p-1.5 text-slate-400 hover:text-teal-600 rounded-lg transition-colors"
+                        className="p-1.5 text-[var(--mv-text-muted)] hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
                         title="Edit memory"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(m.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                        className="p-1.5 text-[var(--mv-text-muted)] hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                         title="Delete memory"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -361,10 +397,10 @@ export default function MemoriesPage() {
 
                   {/* Title & Description */}
                   <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug">
+                    <h3 className="font-bold text-[var(--mv-text)] text-base leading-snug">
                       {m.title}
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                    <p className="text-xs text-[var(--mv-text-muted)] mt-1.5 leading-relaxed">
                       {m.description}
                     </p>
                   </div>
@@ -375,32 +411,34 @@ export default function MemoriesPage() {
                       {m.tags.map((t, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/15 font-medium"
                         >
                           #{t}
                         </span>
                       ))}
                     </div>
                   )}
-
                 </div>
 
                 {/* Footer: Date & Source Link */}
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <div className="pt-3 border-t border-[var(--mv-border)] flex items-center justify-between text-[11px] text-[var(--mv-text-muted)]">
                   <span>
-                    {new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date(m.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
                   </span>
                   {m.sourceJournalId && (
                     <Link
                       href={`/journal?id=${m.sourceJournalId}`}
-                      className="inline-flex items-center space-x-1 text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                      className="inline-flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-violet-600 dark:hover:text-violet-400 hover:underline font-medium transition-colors"
                     >
                       <span>View Source</span>
                       <ExternalLink className="w-3 h-3" />
                     </Link>
                   )}
                 </div>
-
               </div>
             );
           })}
@@ -409,30 +447,38 @@ export default function MemoriesPage() {
 
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-lg w-full shadow-xl space-y-4">
-            
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Edit Memory
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="mv-card p-6 max-w-lg w-full shadow-2xl space-y-5 animate-slideIn">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--mv-border)]">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-[var(--mv-text)]">
+                  Edit Memory
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 rounded-lg text-[var(--mv-text-muted)] hover:text-[var(--mv-text)] hover:bg-indigo-500/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-[var(--mv-text)] mb-1.5">
                   Category
                 </label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as MemoryCategory)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="mv-input !py-2 text-xs"
                 >
                   {Object.keys(CATEGORY_CONFIG).map((c) => (
-                    <option key={c} value={c}>
+                    <option key={c} value={c} className="bg-[var(--mv-surface-solid)] text-[var(--mv-text)]">
                       {CATEGORY_CONFIG[c as MemoryCategory].label}
                     </option>
                   ))}
@@ -440,7 +486,7 @@ export default function MemoriesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-[var(--mv-text)] mb-1.5">
                   Memory Title
                 </label>
                 <input
@@ -448,12 +494,12 @@ export default function MemoriesPage() {
                   required
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="mv-input !py-2 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-[var(--mv-text)] mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -461,46 +507,44 @@ export default function MemoriesPage() {
                   required
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="mv-input !py-2 text-xs resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-[var(--mv-text)] mb-1.5">
                   Tags (comma separated)
                 </label>
                 <input
                   type="text"
                   value={formTags}
                   onChange={(e) => setFormTags(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="mv-input !py-2 text-xs"
                   placeholder="prototype, coding, milestone"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-2">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-[var(--mv-border)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300"
+                  className="mv-btn-secondary !text-xs !py-2 !px-4"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium shadow-sm shadow-teal-600/20 disabled:opacity-50 flex items-center space-x-1.5"
+                  className="mv-btn-primary !text-xs !py-2 !px-4 flex items-center space-x-1.5"
                 >
                   {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Changes</span>
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

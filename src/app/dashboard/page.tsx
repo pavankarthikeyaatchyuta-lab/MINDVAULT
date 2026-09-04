@@ -4,7 +4,79 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { BookOpen, Sparkles, Target, Shield, Compass, ArrowRight, Loader2, Lock, Search, Clock, TrendingUp, MapPin, Brain } from 'lucide-react';
+import {
+  BookOpen,
+  Sparkles,
+  Shield,
+  ArrowRight,
+  Loader2,
+  Lock,
+  Search,
+  Clock,
+  TrendingUp,
+  MapPin,
+  Brain,
+} from 'lucide-react';
+
+interface QuickAction {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  iconBg: string;
+}
+
+const quickActions: QuickAction[] = [
+  {
+    href: '/journal',
+    title: 'Journal & Chat',
+    description: 'Reflective multi-turn Gemini thinking companion.',
+    icon: BookOpen,
+    iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-500/15',
+  },
+  {
+    href: '/memories',
+    title: 'Memories',
+    description: 'Categorized structured decisions, achievements & ideas.',
+    icon: Sparkles,
+    iconBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:bg-violet-500/15',
+  },
+  {
+    href: '/ask',
+    title: 'Ask My Journal',
+    description: 'Natural-language query with verified source citations.',
+    icon: Search,
+    iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-500/15',
+  },
+  {
+    href: '/rewind',
+    title: 'Journal Rewind',
+    description: '7/30/90d & all-time visual retrospective synthesis.',
+    icon: Clock,
+    iconBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:bg-violet-500/15',
+  },
+  {
+    href: '/timeline',
+    title: 'Growth Timeline',
+    description: 'Chronological evolution and pattern shift detection.',
+    icon: TrendingUp,
+    iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-500/15',
+  },
+  {
+    href: '/map',
+    title: 'Memory Map',
+    description: 'Geographic footprint of places woven into your story.',
+    icon: MapPin,
+    iconBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:bg-violet-500/15',
+  },
+  {
+    href: '/insights',
+    title: 'Insights',
+    description: 'Emerging interests, recurring themes & goal momentum.',
+    icon: Brain,
+    iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-500/15',
+  },
+];
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -18,9 +90,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm text-slate-500">Verifying secure session...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3 animate-fadeIn">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>
+          Verifying secure session...
+        </p>
       </div>
     );
   }
@@ -30,169 +104,103 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="space-y-8 py-4 animate-fadeIn">
       {/* Welcome Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        className="mv-card p-6 sm:p-8 relative overflow-hidden"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, var(--mv-surface) 100%)',
+        }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+            <h1
+              className="text-2xl sm:text-3xl font-bold tracking-tight"
+              style={{ color: 'var(--mv-text)' }}
+            >
               Welcome back{user.displayName ? `, ${user.displayName}` : ''}
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm" style={{ color: 'var(--mv-text-muted)' }}>
               Your private journal vault is active and encrypted.
             </p>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3.5 py-2 rounded-xl self-start sm:self-auto">
-            <Lock className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-            <span>Isolated UID: <span className="font-mono">{user.uid.slice(0, 10)}...</span></span>
+          <div
+            className="flex items-center space-x-2 text-xs px-3.5 py-2 rounded-xl self-start sm:self-auto border transition-colors shadow-sm"
+            style={{
+              background: 'rgba(99, 102, 241, 0.08)',
+              borderColor: 'rgba(99, 102, 241, 0.2)',
+              color: 'var(--mv-primary)',
+            }}
+          >
+            <Lock className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+            <span>
+              Isolated UID: <span className="font-mono font-medium">{user.uid.slice(0, 10)}...</span>
+            </span>
           </div>
         </div>
       </div>
 
       {/* Navigation Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        
-        <Link
-          href="/journal"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-              Journal & Chat
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Reflective multi-turn Gemini thinking companion.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/memories"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-              Memories
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Categorized structured decisions, achievements & ideas.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/ask"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform">
-            <Search className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-              Ask My Journal
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Natural-language query with verified source citations.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/rewind"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              Journal Rewind
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              7/30/90d & all-time visual retrospective synthesis.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/timeline"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-105 transition-transform">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-              Growth Timeline
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Chronological evolution and pattern shift detection.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/map"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
-            <MapPin className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-              Memory Map
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Geographic footprint of places woven into your story.
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/insights"
-          className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 shadow-sm transition-all hover:shadow-md space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
-            <Brain className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-              Insights
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Emerging interests, recurring themes & goal momentum.
-            </p>
-          </div>
-        </Link>
-
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="group mv-card mv-card-hover p-5 space-y-3 block transition-all duration-300 hover:border-indigo-400/40 dark:hover:border-indigo-500/40"
+            >
+              <div className="flex items-center justify-between">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-105 ${action.iconBg}`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                <ArrowRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 text-indigo-500 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3
+                  className="font-bold text-base transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                  style={{ color: 'var(--mv-text)' }}
+                >
+                  {action.title}
+                </h3>
+                <p
+                  className="text-xs mt-1 leading-relaxed"
+                  style={{ color: 'var(--mv-text-muted)' }}
+                >
+                  {action.description}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Security Banner */}
-      <div className="p-6 rounded-2xl bg-slate-900 text-white border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-teal-400 text-xs font-semibold uppercase tracking-wider">
+      {/* Privacy & Security Pill / Small Note */}
+      <div className="mv-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
             <Shield className="w-4 h-4" />
-            <span>P0 Security Foundation Active</span>
           </div>
-          <p className="text-sm text-slate-300">
-            Firebase ID token verification is active on all backend routes. Client-supplied UIDs are strictly ignored in favor of verified claims.
-          </p>
+          <div className="space-y-0.5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              Security Foundation Active
+            </p>
+            <p className="text-xs" style={{ color: 'var(--mv-text-muted)' }}>
+              Firebase ID token verification is active. Your journal is strictly isolated to your verified UID.
+            </p>
+          </div>
         </div>
         <Link
           href="/privacy"
-          className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium transition-colors shrink-0"
+          className="mv-btn-primary inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-medium shrink-0 self-start sm:self-auto"
         >
-          <span>View Privacy Status</span>
+          <span>Privacy Status</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
-
     </div>
   );
 }
