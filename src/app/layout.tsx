@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <head>
+      <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col antialiased`} style={{ background: 'var(--mv-bg)', color: 'var(--mv-text)' }}>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -47,8 +47,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col antialiased`} style={{ background: 'var(--mv-bg)', color: 'var(--mv-text)' }}>
         <ThemeProvider>
           <AuthProvider>
             <LayoutShell>{children}</LayoutShell>
