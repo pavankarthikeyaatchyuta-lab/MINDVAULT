@@ -69,58 +69,58 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router]);
 
-  // Fetch real counts & recent entries
+  // Fetch real counts & recent entries in parallel
   useEffect(() => {
+    let isMounted = true;
     async function loadData() {
       if (!user) return;
       try {
         const token = await getIdToken();
-        if (!token) return;
+        if (!token || !isMounted) return;
 
-        // Fetch recent journals
-        const jRes = await fetch('/api/journal/list?limit=5', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const jData = await jRes.json();
-        if (jData.success && Array.isArray(jData.data?.journals)) {
-          const list: JournalEntry[] = jData.data.journals;
+        // Fetch recent journals and memories concurrently
+        const [jResult, mResult] = await Promise.allSettled([
+          fetch('/api/journal/list?limit=5', {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+          fetch('/api/memories/list', {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+        ]);
+
+        if (!isMounted) return;
+
+        if (jResult.status === 'fulfilled' && jResult.value?.success && Array.isArray(jResult.value.data?.journals)) {
+          const list: JournalEntry[] = jResult.value.data.journals;
           setRealJournals(list);
           if (list.length > 0) {
             setJournalCount(list.length);
           }
         }
 
-        // Fetch memory list count
-        const mRes = await fetch('/api/memories/list', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const mData = await mRes.json();
-        if (mData.success && Array.isArray(mData.data?.memories)) {
-          if (mData.data.memories.length > 0) {
-            setMemoryCount(mData.data.memories.length);
-          }
-        }
-
-        // Fetch map places count
-        const pRes = await fetch('/api/map/places', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const pData = await pRes.json();
-        if (pData.success && Array.isArray(pData.data?.places)) {
-          if (pData.data.places.length > 0) {
-            setPlacesCount(pData.data.places.length);
+        if (mResult.status === 'fulfilled' && mResult.value?.success && Array.isArray(mResult.value.data?.memories)) {
+          const mems = mResult.value.data.memories;
+          if (mems.length > 0) {
+            setMemoryCount(mems.length);
+            const places = mems.filter((m: any) => m.category === 'PLACE');
+            if (places.length > 0) {
+              setPlacesCount(places.length);
+            }
           }
         }
       } catch (err) {
         console.warn('Could not fetch real dashboard counts, using active presets:', err);
       } finally {
-        setDataLoaded(true);
+        if (isMounted) setDataLoaded(true);
       }
     }
 
     if (user) {
       loadData();
     }
+    return () => {
+      isMounted = false;
+    };
   }, [user, getIdToken]);
 
   if (authLoading) {
