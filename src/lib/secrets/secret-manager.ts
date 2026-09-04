@@ -1,4 +1,6 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import fs from 'fs';
+import path from 'path';
 
 // In-memory cache for resolved secrets to avoid duplicate network roundtrips
 const secretCache = new Map<string, { value: string; fetchedAt: number }>();
@@ -11,6 +13,38 @@ function getSecretClient(): SecretManagerServiceClient {
     client = new SecretManagerServiceClient();
   }
   return client;
+}
+
+/**
+ * Reads a value directly from .env.local if present on disk.
+ * Overrides stale OS-level system environment variables in local development.
+ */
+function getEnvLocalValue(key: string): string | undefined {
+  try {
+    const envLocalPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envLocalPath)) {
+      const content = fs.readFileSync(envLocalPath, 'utf-8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const idx = trimmed.indexOf('=');
+        if (idx !== -1 && trimmed.slice(0, idx).trim() === key) {
+          let val = trimmed.slice(idx + 1).trim();
+          if (
+            (val.startsWith('"') && val.endsWith('"')) ||
+            (val.startsWith("'") && val.endsWith("'"))
+          ) {
+            val = val.slice(1, -1).trim();
+          }
+          if (val) return val;
+        }
+      }
+    }
+  } catch {
+    // Fall back to process.env
+  }
+  return undefined;
 }
 
 /**
@@ -31,8 +65,21 @@ export async function getSecret(
     return cached.value;
   }
 
-  // 1. In local development, prefer local environment variable if present to avoid 5-second Secret Manager timeouts
+  // 1. In local development, prefer explicit .env.local on disk first to override any stale parent OS-level variables
   if (process.env.NODE_ENV !== 'production') {
+    if (fallbackEnvVar) {
+      const diskVal = getEnvLocalValue(fallbackEnvVar);
+      if (diskVal) {
+        secretCache.set(secretName, { value: diskVal, fetchedAt: Date.now() });
+        return diskVal;
+      }
+    }
+    const diskSecretVal = getEnvLocalValue(secretName);
+    if (diskSecretVal) {
+      secretCache.set(secretName, { value: diskSecretVal, fetchedAt: Date.now() });
+      return diskSecretVal;
+    }
+
     if (fallbackEnvVar && process.env[fallbackEnvVar]) {
       const envValue = process.env[fallbackEnvVar]!.trim();
       secretCache.set(secretName, { value: envValue, fetchedAt: Date.now() });
