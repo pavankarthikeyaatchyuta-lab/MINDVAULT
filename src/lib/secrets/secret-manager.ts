@@ -31,7 +31,21 @@ export async function getSecret(
     return cached.value;
   }
 
-  // 1. Try Google Cloud Secret Manager if project ID is available
+  // 1. In local development, prefer local environment variable if present to avoid 5-second Secret Manager timeouts
+  if (process.env.NODE_ENV !== 'production') {
+    if (fallbackEnvVar && process.env[fallbackEnvVar]) {
+      const envValue = process.env[fallbackEnvVar]!.trim();
+      secretCache.set(secretName, { value: envValue, fetchedAt: Date.now() });
+      return envValue;
+    }
+    if (process.env[secretName]) {
+      const envValue = process.env[secretName]!.trim();
+      secretCache.set(secretName, { value: envValue, fetchedAt: Date.now() });
+      return envValue;
+    }
+  }
+
+  // 2. Try Google Cloud Secret Manager if project ID is available (Production on Cloud Run)
   const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
   if (projectId) {
     try {

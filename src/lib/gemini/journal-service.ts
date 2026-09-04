@@ -49,6 +49,28 @@ function formatMessagesAsData(messages: JournalMessage[]): string {
 }
 
 /**
+ * Executes a Gemini API call with transparent retry for transient network hiccups, 503 capacity limits, or 429 rate limits.
+ */
+async function callGeminiWithRetry<T>(fn: () => Promise<T>, maxRetries = 2): Promise<T> {
+  let lastError: any;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastError = err;
+      if (err?.status === 400 || err?.message?.includes('INVALID_ARGUMENT')) {
+        throw err;
+      }
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+/**
  * 1. Generates a thoughtful, reflective next turn in a multi-turn journal conversation.
  */
 export async function generateReflectiveResponse(messages: JournalMessage[]): Promise<string> {
@@ -58,15 +80,17 @@ export async function generateReflectiveResponse(messages: JournalMessage[]): Pr
 
     const promptText = `The following is the active journal conversation. Please provide a concise, reflective, empathetic response or a thoughtful follow-up question to help the user explore their thoughts:\n\n${delimitedContent}`;
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: promptText,
-      config: {
-        systemInstruction: MINDVAULT_JOURNAL_SYSTEM_PROMPT,
-        temperature: 0.7,
-        maxOutputTokens: 350,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: promptText,
+        config: {
+          systemInstruction: MINDVAULT_JOURNAL_SYSTEM_PROMPT,
+          temperature: 0.7,
+          maxOutputTokens: 350,
+        },
+      })
+    );
 
     const outputText = response.text?.trim();
     if (!outputText) {
@@ -75,6 +99,14 @@ export async function generateReflectiveResponse(messages: JournalMessage[]): Pr
 
     return outputText;
   } catch (error: any) {
+    console.error('*** GEMINI generateReflectiveResponse RAW ERROR ***:', {
+      message: error?.message,
+      name: error?.name,
+      status: error?.status,
+      code: error?.code,
+      stack: error?.stack,
+      raw: error,
+    });
     logger.error('Failed to generate reflective response from Gemini', {
       service: 'GeminiService',
       action: 'generateReflectiveResponse',
