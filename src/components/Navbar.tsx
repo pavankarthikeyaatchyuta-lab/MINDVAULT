@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { BookOpen } from 'lucide-react';
 
+import { ThemeToggle } from '@/components/ThemeToggle';
+
 export function Navbar() {
   const { user, loading } = useAuth();
 
@@ -37,6 +39,7 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center space-x-3">
+          <ThemeToggle />
           {loading ? (
             <div className="w-20 h-8 rounded-lg animate-pulse" style={{ background: 'var(--mv-border)' }} />
           ) : !user ? (

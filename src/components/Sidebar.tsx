@@ -5,29 +5,30 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
+  Home,
   BookOpen,
-  Sparkles,
-  LogOut,
-  Search,
+  Layers,
+  MessageSquare,
   Clock,
   TrendingUp,
   MapPin,
-  Brain,
-  Home,
+  Sparkles,
+  Sprout,
   Menu,
   X,
   ChevronRight,
+  LogOut,
 } from 'lucide-react';
 
 const navLinks = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/journal', label: 'Journal', icon: BookOpen },
-  { href: '/memories', label: 'Memories', icon: Sparkles },
-  { href: '/ask', label: 'Ask', icon: Search },
+  { href: '/memories', label: 'Memories', icon: Layers },
+  { href: '/ask', label: 'Ask', icon: MessageSquare },
   { href: '/rewind', label: 'Rewind', icon: Clock },
   { href: '/timeline', label: 'Timeline', icon: TrendingUp },
   { href: '/map', label: 'Map', icon: MapPin },
-  { href: '/insights', label: 'Insights', icon: Brain },
+  { href: '/insights', label: 'Insights', icon: Sparkles },
 ];
 
 export function Sidebar() {
@@ -88,12 +89,22 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <div className="px-4 pb-4 space-y-3">
-        {/* Motivational quote */}
-        <div className="p-3.5 rounded-xl text-xs leading-relaxed" style={{
-          background: 'rgba(99, 102, 241, 0.06)',
-          color: 'var(--mv-text-muted)',
-        }}>
-          <p className="italic">&ldquo;A calmer mind builds a brighter tomorrow.&rdquo;</p>
+        {/* Motivational quote matching reference design */}
+        <div
+          className="p-3.5 rounded-2xl text-xs leading-relaxed border flex items-start space-x-2.5 shadow-sm"
+          style={{
+            background: 'var(--mv-surface)',
+            borderColor: 'var(--mv-border)',
+            color: 'var(--mv-text-muted)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div className="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+            <Sprout className="w-3.5 h-3.5" />
+          </div>
+          <p className="italic text-[11px] leading-snug">
+            &ldquo;A calmer mind builds a brighter tomorrow.&rdquo;
+          </p>
         </div>
 
         {/* User info & logout */}

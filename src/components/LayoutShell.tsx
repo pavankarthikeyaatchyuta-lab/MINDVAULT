@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Sidebar } from '@/components/Sidebar';
 import { Navbar } from '@/components/Navbar';
 
+import { TopHeader } from '@/components/TopHeader';
+
 const publicPaths = ['/', '/login', '/signup'];
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -21,7 +23,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
         {/* Main content offset for sidebar */}
         <div className="lg:ml-64 min-h-screen mv-page-bg">
-          <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <TopHeader />
+          </div>
+          <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
             {children}
           </main>
           <footer className="border-t py-5 text-center text-xs px-4" style={{ borderColor: 'var(--mv-border)', color: 'var(--mv-text-muted)' }}>

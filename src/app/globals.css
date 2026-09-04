@@ -2,37 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --mv-bg: #f0eef6;
-  --mv-bg-subtle: #e8e5f0;
-  --mv-surface: rgba(255, 255, 255, 0.72);
+:root,
+.light {
+  --mv-bg: #ece9f6;
+  --mv-bg-subtle: #f4f2fb;
+  --mv-surface: rgba(255, 255, 255, 0.82);
   --mv-surface-solid: #ffffff;
-  --mv-primary: #6366f1;
-  --mv-primary-light: #818cf8;
+  --mv-primary: #4f6ef7;
+  --mv-primary-light: #7c94fa;
   --mv-accent: #8b5cf6;
   --mv-accent-soft: #c4b5fd;
-  --mv-success: #34d399;
-  --mv-text: #1e1b3a;
-  --mv-text-muted: #6b6494;
-  --mv-border: rgba(139, 92, 246, 0.12);
-  --mv-shadow: 0 4px 24px rgba(99, 102, 241, 0.08);
-  --mv-shadow-hover: 0 8px 32px rgba(99, 102, 241, 0.14);
-  --mv-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+  --mv-success: #10b981;
+  --mv-text: #191632;
+  --mv-text-muted: #676389;
+  --mv-border: rgba(147, 130, 220, 0.2);
+  --mv-shadow: 0 4px 20px rgba(100, 116, 240, 0.08);
+  --mv-shadow-hover: 0 8px 30px rgba(100, 116, 240, 0.16);
+  --mv-glow: 0 0 24px rgba(79, 110, 247, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --mv-bg: #1a1625;
-    --mv-bg-subtle: #231e33;
-    --mv-surface: rgba(30, 24, 50, 0.8);
-    --mv-surface-solid: #1e1832;
-    --mv-text: #e8e5f0;
-    --mv-text-muted: #9b95b0;
-    --mv-border: rgba(139, 92, 246, 0.18);
-    --mv-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-    --mv-shadow-hover: 0 8px 32px rgba(99, 102, 241, 0.2);
-    --mv-glow: 0 0 24px rgba(129, 140, 248, 0.2);
-  }
+.dark {
+  --mv-bg: #131020;
+  --mv-bg-subtle: #1c172e;
+  --mv-surface: rgba(26, 22, 44, 0.85);
+  --mv-surface-solid: #1b162f;
+  --mv-primary: #6366f1;
+  --mv-primary-light: #818cf8;
+  --mv-accent: #9333ea;
+  --mv-accent-soft: #c084fc;
+  --mv-success: #34d399;
+  --mv-text: #f3f1fa;
+  --mv-text-muted: #9c97b8;
+  --mv-border: rgba(139, 92, 246, 0.22);
+  --mv-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --mv-shadow-hover: 0 8px 32px rgba(99, 102, 241, 0.28);
+  --mv-glow: 0 0 28px rgba(129, 140, 248, 0.28);
 }
 
 body {
