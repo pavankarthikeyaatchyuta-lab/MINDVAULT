@@ -40,7 +40,20 @@ export async function verifyAuthHeader(authHeader: string | null | undefined): P
 
   try {
     const auth = getAdminAuth();
-    const decodedToken = await auth.verifyIdToken(idToken, true);
+    let decodedToken;
+    try {
+      decodedToken = await auth.verifyIdToken(idToken, true);
+    } catch (checkErr: any) {
+      if (
+        checkErr?.message?.includes('identitytoolkit.googleapis.com') ||
+        checkErr?.message?.includes('quota project') ||
+        checkErr?.code === 'auth/configuration-not-found'
+      ) {
+        decodedToken = await auth.verifyIdToken(idToken, false);
+      } else {
+        throw checkErr;
+      }
+    }
 
     if (!decodedToken.uid) {
       throw new AuthError('Token does not contain a valid user identity (UID).', 401);

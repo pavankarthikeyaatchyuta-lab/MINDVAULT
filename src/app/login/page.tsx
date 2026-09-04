@@ -15,8 +15,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   const formatAuthError = (err: any, defaultMsg: string): string => {
-    if (err?.code === 'auth/invalid-api-key' || err?.message?.includes('invalid-api-key')) {
-      return 'Firebase API Key is missing or invalid. Please configure your real Firebase Web API credentials in .env.local (from Firebase Console > Project Settings).';
+    if (err?.code === 'auth/configuration-not-found' || err?.message?.includes('configuration-not-found')) {
+      return 'Firebase Authentication is not yet enabled in Firebase Console. Please open Firebase Console > Build > Authentication, click "Get Started", and enable the Email/Password provider.';
+    }
+    if (err?.code?.includes('api-key') || err?.message?.toLowerCase().includes('api-key')) {
+      return 'Firebase API Key is currently set to placeholder. Please replace PASTE_YOUR_FIREBASE_API_KEY_HERE in .env.local with your real Web API Key from the Firebase Console (Project Settings > General > Your Apps > Web).';
     }
     if (err?.code === 'auth/user-not-found' || err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential') {
       return 'Invalid email or password. Please verify your credentials or create an account.';
