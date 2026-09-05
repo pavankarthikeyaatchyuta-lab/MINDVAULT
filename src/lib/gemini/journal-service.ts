@@ -100,7 +100,7 @@ export async function generateReflectiveResponse(messages: JournalMessage[]): Pr
         config: {
           systemInstruction: MINDVAULT_JOURNAL_SYSTEM_PROMPT,
           temperature: 0.7,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
         },
       })
     );
