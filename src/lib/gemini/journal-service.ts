@@ -130,6 +130,69 @@ export async function generateReflectiveResponse(messages: JournalMessage[]): Pr
 }
 
 /**
+ * Deterministic fallback memory extractor if Gemini API experiences transient 503 or outage.
+ * Scans journal conversation text for recognized cities, decisions, goals, and lessons.
+ */
+function fallbackMemoryExtraction(
+  sourceJournalId: string,
+  messages: JournalMessage[],
+  sourceDate: string
+): z.infer<typeof ExtractedMemoryItemSchema>[] {
+  const fullText = messages.map((m) => m.content).join(' ');
+  const memories: z.infer<typeof ExtractedMemoryItemSchema>[] = [];
+
+  // 1. Detect recognized cities
+  const cities = ['bengaluru', 'bangalore', 'hyderabad', 'mumbai', 'delhi', 'chennai', 'pune', 'san francisco', 'tokyo', 'singapore', 'new york'];
+  for (const city of cities) {
+    const regex = new RegExp(`\\b${city}\\b`, 'i');
+    if (regex.test(fullText)) {
+      const cityName = city.charAt(0).toUpperCase() + city.slice(1);
+      memories.push({
+        category: 'PLACE',
+        title: cityName,
+        description: `Reflected in ${cityName} during this journal session.`,
+        confidence: 0.9,
+      });
+    }
+  }
+
+  // 2. Detect decisions
+  const decisionMatch = fullText.match(/(?:decided to|decision to|freeze|chose to)\s+([^.?!]+)/i);
+  if (decisionMatch) {
+    memories.push({
+      category: 'DECISION',
+      title: 'Key Decision',
+      description: `Decided to ${decisionMatch[1].trim()}`,
+      confidence: 0.85,
+    });
+  }
+
+  // 3. Detect goals
+  const goalMatch = fullText.match(/(?:goal(?: is| to)?|target|onboard)\s+([^.?!]+)/i);
+  if (goalMatch) {
+    memories.push({
+      category: 'GOAL',
+      title: 'Milestone Goal',
+      description: `Goal: ${goalMatch[0].trim()}`,
+      confidence: 0.85,
+    });
+  }
+
+  // 4. Detect lessons
+  const lessonMatch = fullText.match(/(?:learned that|realized that|lesson:|simplicity over)\s+([^.?!]+)/i);
+  if (lessonMatch) {
+    memories.push({
+      category: 'LESSON',
+      title: 'Key Realization',
+      description: lessonMatch[0].trim(),
+      confidence: 0.85,
+    });
+  }
+
+  return memories;
+}
+
+/**
  * 2. Generates an evocative short title for a journal session with fallback.
  */
 export async function generateJournalTitle(messages: JournalMessage[]): Promise<string> {
@@ -143,16 +206,18 @@ export async function generateJournalTitle(messages: JournalMessage[]): Promise<
     const ai = await getGeminiClient();
     const delimitedContent = formatMessagesAsData(messages);
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: `Generate a concise 2-6 word title for this journal session:\n\n${delimitedContent}`,
-      config: {
-        systemInstruction: MINDVAULT_TITLE_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.3,
-        maxOutputTokens: 1024,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: `Generate a concise 2-6 word title for this journal session:\n\n${delimitedContent}`,
+        config: {
+          systemInstruction: MINDVAULT_TITLE_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+          maxOutputTokens: 1024,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{}');
     const parsed = JSON.parse(rawJson);
@@ -178,16 +243,18 @@ export async function generateJournalSummary(
     const ai = await getGeminiClient();
     const delimitedContent = formatMessagesAsData(messages);
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: `Summarize this journal session and extract key topics:\n\n${delimitedContent}`,
-      config: {
-        systemInstruction: MINDVAULT_SUMMARY_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-        maxOutputTokens: 2048,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: `Summarize this journal session and extract key topics:\n\n${delimitedContent}`,
+        config: {
+          systemInstruction: MINDVAULT_SUMMARY_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.2,
+          maxOutputTokens: 2048,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{}');
     const parsed = JSON.parse(rawJson);
@@ -221,16 +288,18 @@ export async function extractMemoriesFromJournal(
     const ai = await getGeminiClient();
     const delimitedContent = formatMessagesAsData(messages);
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: `Extract meaningful memories from this journal entry into valid structured JSON conforming to the schema:\n\n${delimitedContent}`,
-      config: {
-        systemInstruction: MINDVAULT_MEMORY_EXTRACTION_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-        maxOutputTokens: 4096,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: `Extract meaningful memories from this journal entry into valid structured JSON conforming to the schema:\n\n${delimitedContent}`,
+        config: {
+          systemInstruction: MINDVAULT_MEMORY_EXTRACTION_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.2,
+          maxOutputTokens: 4096,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{"memories":[]}');
     const parsed = JSON.parse(rawJson);
@@ -238,12 +307,12 @@ export async function extractMemoriesFromJournal(
 
     return validated.memories;
   } catch (err: any) {
-    logger.warn('Memory extraction failed or returned invalid schema', {
+    logger.warn('Memory extraction failed or returned invalid schema; using deterministic fallback', {
       service: 'GeminiService',
       action: 'extractMemoriesFromJournal',
       errorCode: err?.message,
     });
-    return [];
+    return fallbackMemoryExtraction(sourceJournalId, messages, sourceDate);
   }
 }
 
@@ -274,18 +343,18 @@ export async function askMyJournal(
       )
       .join('\n\n---\n\n');
 
-    const promptText = `QUESTION:\n"${question}"\n\n<verified_journal_evidence>\n${formattedEvidence}\n</verified_journal_evidence>\n\nAnswer the question concisely and cite exact matching sourceIds from the evidence.`;
-
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: promptText,
-      config: {
-        systemInstruction: MINDVAULT_ASK_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-        maxOutputTokens: 2048,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: promptText,
+        config: {
+          systemInstruction: MINDVAULT_ASK_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.2,
+          maxOutputTokens: 2048,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{}');
     const parsed = JSON.parse(rawJson);
@@ -380,16 +449,18 @@ export async function synthesizeRewind(
 
     const promptText = `STATISTICS:\n${formattedStats}\n\n<verified_rewind_evidence>\nJOURNALS:\n${formattedJournals}\n\nMEMORIES:\n${formattedMemories}\n</verified_rewind_evidence>\n\nSynthesize a grounded, inspiring retrospective in JSON conforming to the schema.`;
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: promptText,
-      config: {
-        systemInstruction: MINDVAULT_REWIND_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.3,
-        maxOutputTokens: 4096,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: promptText,
+        config: {
+          systemInstruction: MINDVAULT_REWIND_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+          maxOutputTokens: 4096,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{}');
     const parsed = JSON.parse(rawJson);
@@ -512,16 +583,18 @@ ${evidenceJournals.slice(0, 10).map((j) => `[ID: ${j.id}] ${j.title}: ${j.summar
 
     const promptText = `Interpret the following verified journal analytics into structured JSON conforming to the schema:\n\n<verified_insights_dataset>\n${formattedDataset}\n</verified_insights_dataset>`;
 
-    const response = await ai.models.generateContent({
-      model: DEFAULT_GEMINI_MODEL,
-      contents: promptText,
-      config: {
-        systemInstruction: MINDVAULT_INSIGHTS_SYSTEM_PROMPT,
-        responseMimeType: 'application/json',
-        temperature: 0.25,
-        maxOutputTokens: 4096,
-      },
-    });
+    const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: promptText,
+        config: {
+          systemInstruction: MINDVAULT_INSIGHTS_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          temperature: 0.25,
+          maxOutputTokens: 4096,
+        },
+      })
+    );
 
     const rawJson = cleanJsonText(response.text || '{}');
     const parsed = JSON.parse(rawJson);

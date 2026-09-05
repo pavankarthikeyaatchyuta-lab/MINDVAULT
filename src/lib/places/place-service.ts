@@ -216,6 +216,45 @@ export async function getAggregatedPlacesForUser(
     }
   }
 
+  // 3. Process recognized city hubs mentioned in Journal content/title
+  for (const j of journals) {
+    const text = `${j.title || ''} ${j.summary || ''} ${j.content || ''}`.toLowerCase();
+    for (const [knownKey, coords] of Object.entries(KNOWN_COORDINATES)) {
+      if (text.includes(knownKey)) {
+        const { key, displayName } = getCanonicalPlaceKey(knownKey);
+        const jRef: MapPlaceJournalRef = {
+          id: j.id,
+          title: j.title || 'Journal Entry',
+          date: j.createdAt,
+        };
+
+        if (!placeMap.has(key)) {
+          placeMap.set(key, {
+            id: `place_${encodeURIComponent(key)}`,
+            name: displayName,
+            latitude: coords.lat,
+            longitude: coords.lng,
+            precision: 'city',
+            coordinateSource: 'KNOWN_CITY_DATABASE',
+            mentionsCount: 1,
+            lastMentioned: j.createdAt,
+            memories: [],
+            journals: [jRef],
+          });
+        } else {
+          const existing = placeMap.get(key)!;
+          if (!existing.journals.some((entry) => entry.id === j.id)) {
+            existing.journals.push(jRef);
+            existing.mentionsCount += 1;
+            if (new Date(j.createdAt).getTime() > new Date(existing.lastMentioned).getTime()) {
+              existing.lastMentioned = j.createdAt;
+            }
+          }
+        }
+      }
+    }
+  }
+
   let results = Array.from(placeMap.values());
 
   // Optional search filtering
