@@ -22,19 +22,32 @@ import { logger } from '@/lib/observability/logger';
 import { z } from 'zod';
 
 /**
- * Strips markdown code fence blocks if the model outputs ```json ... ```
+ * Robustly cleans and extracts valid JSON string from Gemini response.
+ * Handles markdown fences, preamble text, and trailing whitespace.
  */
 function cleanJsonText(raw: string): string {
   let cleaned = raw.trim();
-  if (cleaned.startsWith('```json')) {
-    cleaned = cleaned.slice(7);
-  } else if (cleaned.startsWith('```')) {
-    cleaned = cleaned.slice(3);
+  const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (match) {
+    cleaned = match[1].trim();
   }
-  if (cleaned.endsWith('```')) {
-    cleaned = cleaned.slice(0, -3);
+  const firstBrace = cleaned.indexOf('{');
+  const firstBracket = cleaned.indexOf('[');
+  let startIdx = -1;
+  let endIdx = -1;
+
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    startIdx = firstBrace;
+    endIdx = cleaned.lastIndexOf('}');
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+    endIdx = cleaned.lastIndexOf(']');
   }
-  return cleaned.trim();
+
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    return cleaned.slice(startIdx, endIdx + 1);
+  }
+  return cleaned;
 }
 
 /**
@@ -87,7 +100,7 @@ export async function generateReflectiveResponse(messages: JournalMessage[]): Pr
         config: {
           systemInstruction: MINDVAULT_JOURNAL_SYSTEM_PROMPT,
           temperature: 0.7,
-          maxOutputTokens: 350,
+          maxOutputTokens: 1024,
         },
       })
     );
@@ -137,7 +150,7 @@ export async function generateJournalTitle(messages: JournalMessage[]): Promise<
         systemInstruction: MINDVAULT_TITLE_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.3,
-        maxOutputTokens: 100,
+        maxOutputTokens: 1024,
       },
     });
 
@@ -172,7 +185,7 @@ export async function generateJournalSummary(
         systemInstruction: MINDVAULT_SUMMARY_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.2,
-        maxOutputTokens: 300,
+        maxOutputTokens: 2048,
       },
     });
 
@@ -215,7 +228,7 @@ export async function extractMemoriesFromJournal(
         systemInstruction: MINDVAULT_MEMORY_EXTRACTION_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.2,
-        maxOutputTokens: 800,
+        maxOutputTokens: 4096,
       },
     });
 
@@ -270,7 +283,7 @@ export async function askMyJournal(
         systemInstruction: MINDVAULT_ASK_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.2,
-        maxOutputTokens: 600,
+        maxOutputTokens: 2048,
       },
     });
 
@@ -374,7 +387,7 @@ export async function synthesizeRewind(
         systemInstruction: MINDVAULT_REWIND_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.3,
-        maxOutputTokens: 800,
+        maxOutputTokens: 4096,
       },
     });
 
@@ -506,7 +519,7 @@ ${evidenceJournals.slice(0, 10).map((j) => `[ID: ${j.id}] ${j.title}: ${j.summar
         systemInstruction: MINDVAULT_INSIGHTS_SYSTEM_PROMPT,
         responseMimeType: 'application/json',
         temperature: 0.25,
-        maxOutputTokens: 1000,
+        maxOutputTokens: 4096,
       },
     });
 
